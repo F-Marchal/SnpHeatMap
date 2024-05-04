@@ -1,0 +1,11 @@
+Contig_name	Status	BiAllelic_SNP	TriAllelic_SNP	QuadriAllelic_SNP	nN	nS	fixN	fixS	polymN0.0	polymS0.0	polymN0.2	polymS0.2	MK_nN	MK_nS	GCalfreq<=0.125	GCalfreq<=0.25	GCalfreq<=0.375	GCalfreq<=0.5	GCalfreq<=0.625	GCalfreq<=0.75	GCalfreq<=0.875	GCalfreq<=1	Ae_searsii_nb_sequence	Ae_searsii_nb_complete_site	Ae_searsii_GC3	Ae_searsii_piN	Ae_searsii_piS	Ae_searsii_Fit	Ae_searsii_WeirCockerham84_Fit	H(Tr161)	H(Tr164)	H(Tr165)
+Ae_searsii_Tr165_SER04_Singlet100004	OK	0	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	0	0	0	0	0	0	6	94	0.595745	0	0	-999	-999	0	0	0
+Ae_searsii_Tr165_SER04_Singlet100007	OK	2	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	0	0	0	0	0	0	6	48	0.666667	0	0	-999	-999	0	0	0
+Ae_searsii_Tr165_SER04_Singlet100011	OK	3	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	1	0	0	0	0	0	6	358	0.391061	0	0.00217984	1	1	0	0	0
+Ae_searsii_Tr165_SER04_Singlet100015	OK	0	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	0	0	0	0	0	0	6	46	0.913043	0	0	-999	-999	0	0	0
+Ae_searsii_Tr165_SER04_Singlet100030	OK	8	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	1	0	0	0	0	0	0	0	6	132	0.583333	0	0.00608365	1	1	0	0	0
+Ae_searsii_Tr165_SER04_Singlet100075	OK	5	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	0	0	0	0	0	0	6	31	0.548387	0	0	-999	-999	0	0	0
+Ae_searsii_Tr165_SER04_Singlet100108	OK	3	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	0	0	0	0	0	0	6	26	0.5	0	0	-999	-999	0	0	0
+Ae_searsii_Tr165_SER04_Singlet100168	OK	3	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	0	0	0	0	0	0	6	245	0.416327	0.000937317	0	1	1	0	0	0
+Ae_searsii_Tr165_SER04_Singlet100175	OK	3	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	0	0	0	0	0	0	6	22	0.409091	0	0	-999	-999	0	0	0
+Ae_searsii_Tr165_SER04_Singlet10018	OK	7	0	0	-1	-1	-1	-1	-1	-1	-1	-1	-1	-1	0	0	0	0	0	0	0	0	6	142	0.788732	0	0	-999	-999	0	0	0
