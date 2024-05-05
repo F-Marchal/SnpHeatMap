@@ -192,62 +192,53 @@ def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed
 
     return cumulative_list
 
-def export_list_in_tsv_as_columns(path: str, *columns, file_mode="w", encoding="UTF-8",
-                                  y_legend: list=None, x_legend: list=None):
-    file_flux = open(path, mode=file_mode, encoding=encoding)
-    if y_legend is None:
-        columns = [y_legend, *columns]
-    row_index = 0
-    someone_was_not_empty = True
-
-    if x_legend:
-        for item in x_legend:
-            file_flux.write(item + "\t")
-    file_flux.write("\n")
-
-    while someone_was_not_empty:
-        someone_was_not_empty = False
-
-        for current_columns in columns:
-            if len(columns) > row_index:
-                file_flux.write(current_columns[row_index])
-                someone_was_not_empty = True
-            file_flux.write("\t")
-
-        file_flux.write("\n")
-        row_index += 1
-
-    file_flux.close()
 
 def export_list_in_tsv_as_rows(path: str, *rows, file_mode="w", encoding="UTF-8",
-                                  y_legend: list=None, x_legend: list=None):
+                               y_legend: list = None, x_legend: list = None):
+    # WARNING: \t and \n in rows can distributed lines / columns
+
+    # Open file
     file_flux = open(path, mode=file_mode, encoding=encoding)
 
     if x_legend:
+        # Add the legend
         rows = [x_legend, *rows]
 
-    i = 0
+        # Assure that y_legend is aligned with the correct line
+        # (x_legend create a new line that shift y_legend)
+        if y_legend is not None and len(y_legend) < len(rows):
+            y_legend = ["", *y_legend]
+
+    i = 0   # Initialise i for the last block of instruction
     for i, lines in enumerate(rows):
+
+        # Add y_legend at the beginning of each lines
         if y_legend:
-            if i < len(y_legend):
+            if i < len(y_legend):   # Assure that y_legend can not create errors
                 file_flux.write(y_legend[i])
+
             file_flux.write("\t")
 
+        # Write line content
         for word in lines:
             file_flux.write(str(word) + "\t")
+
+        # End line
         file_flux.write("\n")
 
+    # Assure that y_legend is completely written
     if y_legend:
-        while i < len(y_legend):
+        while i < len(y_legend) - 1:
             file_flux.write(y_legend[i])
             file_flux.write("\t")
+            i += 1
 
+    # Close file
     file_flux.close()
 
-def _chart_export(data: list[list[int]], show: bool = False, png: str = None, tsv: str = None, svg: str = None):
-    # chart display
-    if show:
-        plt.show()
+
+def _chart_export(data: list[list[int]], show: bool = False, png: str = None, tsv: str = None, svg: str = None,
+                  x_legend: list = None, y_legend: list = None):
 
     if png is not None:
         plt.savefig(png + ".png", format='png')
@@ -256,19 +247,15 @@ def _chart_export(data: list[list[int]], show: bool = False, png: str = None, ts
         plt.savefig(svg + ".svg", format='svg')
 
     if tsv is not None:
-        pass
-        # export_list_in_tsv_as_rows(tsv + ".tsv", *data, values)
+        export_list_in_tsv_as_rows(tsv + ".tsv", *data, y_legend=y_legend, x_legend=x_legend)
+
+    if show:
+        plt.show()
 
 
-def _chart_labels(x_positions, legend, title: str = None, xlabel: str = None, ylabel: str = None):
 
-    plt.xticks(x_positions, legend)
-    plt.xlabel(xlabel)
-    plt.xlabel(ylabel)
-    plt.title(title)
-
-
-def make_bar_chart(values: list[int or float], legend: list[any],
+"""def make_bar_chart(values: list[int or float],
+                   x_legend: list = None, y_legend: list = None,
                    title: str = None, xlabel: str = None, ylabel: str = None,
                    show: bool = False, png: str = None, tsv: str = None, erase: bool = True) -> plt:
 
@@ -277,16 +264,31 @@ def make_bar_chart(values: list[int or float], legend: list[any],
         plt.close()
 
     # Create the bar chart
-    x_positions = range(len(legend))
+    x_positions = range(len(x_legend))
     plt.plot(x_positions, values, color='blue', alpha=0.7)
 
     # Set labels
-    _chart_labels(x_positions, legend, xlabel=xlabel, ylabel=ylabel, title=title)
-    _chart_export(legend=legend, values=values, tsv=tsv, png=png, show=show)
+    plt.xlabel(xlabel)
+    plt.xlabel(ylabel)
+    plt.title(title)
+    
+    # Export chart
+    _chart_export(data=values, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show)
 
     return plt
+"""
 
-def make_heatmap(data: list[list[int]], x_legend: list=None, y_legend: list=None):
+def make_heatmap(data: list[list[int]],
+                 x_legend: list = None, y_legend: list = None,
+                 title: str = None, xlabel: str = None, ylabel: str = None,
+                 show: bool = False, png: str = None, tsv: str = None, svg: str = None,
+                 erase_last_plt: bool = True
+                 ):
+    if erase_last_plt:
+        plt.close('all')
+        plt.clf()
+        plt.cla()
+
     # Number of rows and columns
     num_rows = len(data)
     num_cols = len(data[0])
@@ -294,19 +296,26 @@ def make_heatmap(data: list[list[int]], x_legend: list=None, y_legend: list=None
     # Create heatmap
     plt.imshow(data, cmap='viridis', interpolation='nearest')
 
-    # Add ticks and labels
+    # Add ticks
     if x_legend:
         plt.xticks(range(num_cols), x_legend)
 
     if y_legend:
         plt.yticks(range(num_rows), y_legend)
 
-    # Add color bar
-    plt.colorbar()
+    # Add labels
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
 
-    # Show plot
-    plt.show()
-def main(path: str):
+    # Add color bar
+    cbar = plt.colorbar()
+    cbar.set_label('Number of genes')
+
+    _chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
+
+
+def main(path: str, ):
     all_snp = {}
     all_files = os.listdir(path)
     for files in all_files:
@@ -320,13 +329,14 @@ def main(path: str):
 
     if len(x_legend) == x_legend[-1]:
         x_legend = None
-    make_heatmap(data, y_legend=all_files, x_legend=x_legend)
-
+    make_heatmap(data, y_legend=all_files, x_legend=x_legend, tsv="Alpha",
+                 title="Number of genes with at least n SNP",
+                 xlabel="Number of snp",
+                 ylabel="Species names", show=True, png="Alpha", svg="Alpha")
 
 if __name__ == "__main__":
     main("tests")
-    
-    #TODO: Save function
+
     #TODO: Barplot for each files
     #TODO: Documentation
     #TODO: Test unitaire
