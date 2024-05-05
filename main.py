@@ -310,7 +310,7 @@ def main(path: str):
     all_snp = {}
     all_files = os.listdir(path)
     for files in all_files:
-        files_dict = extract_data_from_table(path + "\\" + files, key="Contig_name", value="BiAllelic_SNP",
+        files_dict = extract_data_from_table(path + "/" + files, key="Contig_name", value="BiAllelic_SNP",
                                              filter_=greater_than_0_int_filter)
         all_snp = compile_gene_snp(files_dict, all_snp, group=files)
 
@@ -325,8 +325,7 @@ def main(path: str):
 
 if __name__ == "__main__":
     main("tests")
-
-    #TODO: Correct how heatmap is created (Sum of all snp should became At least n snp)
+    
     #TODO: Save function
     #TODO: Barplot for each files
     #TODO: Documentation
