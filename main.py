@@ -1,22 +1,25 @@
 
 import os
-import sys
+import json
 import matplotlib.pyplot as plt
-import math
-
 
 def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
-    """!
-    @brief Converts : a line from a table to a dictionary using a specified legend and separator.
+    """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
     @param legend : Names all the line's columns. Example: ["A", "B", "C"]
     @param line : Contains all the line's values. Example: "1|2|3|", "1|2|3" ...
     @param separator : The symbol that splits the line's values. Example: "|", "\n", "\t" ...
     @return A dictionary composed of legend's values and line's values.
-        Example: {"A": "1", "B": "2", "C": "3"} (using previous examples)
-    """
-    parsed_line = {}
-    split_line = line.split(separator)
+        Example:  @code {"A": "1", "B": "2", "C": "3"}  @endcode (using previous examples)
 
+    @note The returned dict always contain the same umber of object than legend.
+        - If legend > line : part of the legend's values will point to an empty string
+        - If legend < line : part of the line will be ignored
+    """
+
+    parsed_line = {}
+    split_line = line.split(separator)  # Split the line in "columns"
+
+    # Fill parsed_line
     for i, column_name in enumerate(legend):
         cell_value = split_line[i] if i < len(split_line) else ""
         parsed_line[column_name] = cell_value
@@ -32,26 +35,31 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
 
     @warning If the column @p key contains the same value multiple times, only the last one is kept.
 
-    Parameters:
-        @param path : Path to a flatFile.
-        @param key : A column name that can be found in the legend. This will be used as a key in the returned dict. Example: "Column3"
-        @param value : A column name that can be found in the legend. This will be used as a value in the returned dict WHEN @p filter returns None or True. Example: "Column2"
-        @param separator : The symbol that splits line's values. Example: "|", "\n", "\t" ...
-        @param legend : If None: The first non-empty line in the file split using @p separator. Else: A list of column names. Example: [Column1, Column2, Column3]
-        @param filter_ : A function that accepts 3 arguments: @p key, @p value, and the parsed line (dict). It selects/generates the value present next to each key.
-            - If it returns True or None: value in the column @p value.
-            - If it returns False: this line is ignored.
-            - Else: The returned value is used (instead of the content of the column @p value).
-            @note filter_ is called one time per line.
+    @param path : Path to a flatFile.
+    @param key : A column name that can be found in the legend. This will be used as a key in the returned dict.
+            Example: "Column3"
+    @param value : A column name that can be found in the legend. This will be used as a value in the returned dict
+            WHEN @p filter returns None or True. Example: "Column2"
+    @param separator : The symbol that splits line's values. Example: "|", "\n", "\t" ...
+    @param legend : If None: The first non-empty line in the file split using @p separator. Else: A list of column
+            names. Example: [Column1, Column2, Column3]
+    @param filter_ : A function that accepts 3 arguments: @p key, @p value, and the parsed line (dict). It
+            selects/generates the value present next to each key.
+                - If it returns True or None: value in the column @p value.
+                - If it returns False: this line is ignored.
+                - Else: The returned value is used (instead of the content of the column @p value).
+    @note filter_ is called one time per line.
     @return A dictionary: {values in the column @p key (values that do not pass @p filter_ are ignored): values in the column @p value OR value returned by @p filter_}
     """
-
+    # Open file
     flux = open(path, "r", encoding="UTF-8")
     data = {}
-    
+
+    # Researched keys and values should be contained inside the legend.
     if legend is not None and (key not in legend or value not in legend):
         raise ValueError(f"Both key ('{key}') and value {value} should be contained inside legend : {legend}")
 
+    # Fill data
     for line in flux:
         # Special cases : empty line | empty file
         if line == "\n" or line == "":
@@ -59,8 +67,9 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
 
         # Special cases : Unknown legend
         if legend is None:
-            legend = line.split("\t")
+            legend = line.split(separator)
 
+            # Researched keys and values should be contained inside the legend.
             if key not in legend or value not in legend:
                 raise ValueError(f"Both key ('{key}') and value {value} should be contained inside the legend : {legend}")
 
@@ -75,30 +84,31 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
             continue
 
         if func_result is None or func_result is True:
+            # Save  parsed_line[value]
             data[parsed_line[key]] = parsed_line[value]
 
         else:
+            # Save  func_result
             data[parsed_line[key]] = func_result
 
+    # Close file
     flux.close()
+
     return data
 
 
 def greater_than_0_int_filter(_, key: int=None, dictionary: dict = None) -> bool:
     """!
     @brief Test if the value in front of the key @p key inside @p dictionary can be an integer bigger than 0.
-    Meant to be used inside  @extract_data_from_table as a "filter_"
+    Meant to be used inside  @ref extract_data_from_table as a "filter_"
 
-    Parameters : 
-        @param _ => Unused parameter. Exist due to how "filter_" in @extract_data_from_table works
-        @param key : int = None => A key contained by @p dictionary.
-        @param dictionary : dict = None => A dictionary that contain @p key
-    
-    Return : 
-        @return bool => True : Yes ; False : No.
+    @param _ => Unused parameter. Exist due to how "filter_" in @extract_data_from_table works
+    @param key : int = None => A key contained by @p dictionary.
+    @param dictionary : dict = None => A dictionary that contain @p key
+
+    @return bool => True : Yes ; False : No.
 
     """
-    
     try:
         return int(dictionary[key]) > 0
     except ValueError:
@@ -113,25 +123,26 @@ def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[s
     of all keys (i.e. snp number). This dict contain the @p group (key) and the number of occurrences of this
     snp number for this key.
 
-    Parameters :
-        @param genes_snp : dict[str,any] => A dictionary from @ref extract_data_from_table.
-            e.g. {gene_1: number_of_snp_in_gene_1} => {"gene1": 3}
-            @note Values (number of snp) inside this dict are trans typed into integers.
-        @param dict_of_number : dict[int, dict[str,int]] = None.
-            A dict with the same structure as dictionaries returned by this function.
-        @param group : str = "None" => Each occurrence of a number of snp increment the counter related to this group.
-    Returns :
-        @return dict[int, dict[str, int]] => A dictionary that store all number of snp found along with the number of
-        occurrences {number_of_snp_1 : {group1: number_of_occurrences_of_number_of_snp_1_in_this_group}
+    @param genes_snp : dict[str,any] => A dictionary from @ref extract_data_from_table.
+        e.g. {gene_1: number_of_snp_in_gene_1} =>  @code {"gene1": 3}  @endcode
+        @note Values (number of snp) inside this dict are trans typed into integers.
+    @param dict_of_number : dict[int, dict[str,int]] = None.
+        A dict with the same structure as dictionaries returned by this function.
+    @param group : str = "None" => Each occurrence of a number of snp increment the counter related to this group.
+
+    @return dict[int, dict[str, int]] => A dictionary that store all number of snp found along with the number of
+    occurrences {number_of_snp_1 : {group1: number_of_occurrences_of_number_of_snp_1_in_this_group}
     """
     dict_of_number = {} if dict_of_number is None else dict_of_number
 
     for _, snp_count in genes_snp.items():
         snp_count = int(snp_count)
 
+        # Add this 'snp_count' to dict_of_number
         if snp_count not in dict_of_number:
             dict_of_number[snp_count] = {}
 
+        # Add this 'group' to dict_of_number[snp_count]
         if group not in dict_of_number[snp_count]:
             dict_of_number[snp_count][group] = 0
 
@@ -140,37 +151,84 @@ def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[s
     return dict_of_number
 
 
-def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group : str, *groups : str,
-                     simplified: bool = True, max_length: int=None) -> (list[list[int]], list[int]):
-    groups = [group, *groups]
-    data = [list() for _ in range(0, len(groups))]
-    last_x_value = 0
-    sorted_x_values = sorted(compiled_dict)
+def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *groups: str,
+                     simplified: bool = True, max_length: int = None) -> (list[list[int]], list[int]):
+    """!
+    @brief Use a compiled dict from @ref compile_gene_snp to create a matrix of value.
+    Each lines represent one group (@p groups & @p group).
+    Each line contain the number of genes that contain at least n genes
 
+    @parblock
+    @note Only groups specified in @p groups and @p group are extracted from @p compiled_dict
+    @endparblock
+
+    @parblock
+    @note For below example we will consider that :
+        - @code compiled_dict = {1: {"E. coli": 5},
+                           2: {"E. coli": 3, "HIV": 4},
+                           3: {"HIV": 2}
+                           4: {"E. coli": 1, "HIV": 1}
+                           } @endcode
+    @endparblock
+
+    @param compiled_dict : dict[int,dict[str,int]] => a compiled dict from @ref compile_gene_snp
+    @param group : str => A group name (e.g. Species name : "E. coli")
+    @param *groups : str => Same as @p group. Additional species name.
+    @param simplified : bool = True => Do number of snp represented by 0 gene are deleted from the result ?
+    @note This the presence / absence of a number is affected by other groups
+        - with group="E. coli":
+            - If True: @code ([[5, 3, 1]], [1, 2, 4]) @endcode
+            - If False: @code ([[5, 3, 0, 1]], [1, 2, 3, 4]) @endcode
+        - with group="E. coli" and groups= ("HIV", ):
+            - If True: @code ([[5, 3, 0, 1], [0, 4, 2, 1]], [1, 2, 4])  @endcode
+    @param max_length : int = None => Limit the length of each lines of the matrix.
+
+    @return (list[list[int]], list[int]) => Return a matrix and a list. Each lines of the matrix represent the
+    number of genes of a species (group) that contain n snp : If the position 1 of a line is equal to 4, there is
+    4 genes in the selected species that contain list[i] snp.
+    The y axes can be labeled using @p group and @p groups (order in conserved) and  the x-axis is labeled by
+    the list[int].
+
+    @note For some return example, see @p simplified for return example
+    """
+    # Variables
+    groups = [group, *groups]                       # Merge @p group and @p groups
+    data = [list() for _ in range(0, len(groups))]  # Data matrix
+    last_x_value = 0                                # Remember the last value
+    sorted_x_values = sorted(compiled_dict)         # Snp size from compiled_dict sorted y size
+
+    # Apply the @p max_length by reducing the size of "sorted_x_values"
     if max_length is not None and len(sorted_x_values) >= max_length:
         sorted_x_values = sorted_x_values[:max_length]
 
+    # Fill data
     for x_values in sorted_x_values:
         group_at_this_position = compiled_dict[x_values]
 
+        # missing_x_values is append at by each groups in order to extend the matrix.
+        # the last value (pos -1) is always rewrote in the next loop
         missing_x_values = [0]
         if simplified is False:
+            # When there is snp numbers represented by 0 genes, we add them using missing_x_values
             missing_x_values *= (x_values - last_x_value)
 
+        # For each group, extend the matrix
         for i, group_name in enumerate(groups):
             data[i].extend(missing_x_values)
 
+            # Store the value of this snp number
             if group_name in group_at_this_position:
                 data[i][-1] = group_at_this_position[group_name]
 
+        # Update last_x_value
         last_x_value = x_values
 
+    # Return the matrix and the legend
     if simplified is True:
         return data, sorted_x_values
 
     else:
         return data, list(range(1, sorted_x_values[-1] + 1))
-
 
 
 def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed_=False) -> list[int]:
@@ -290,7 +348,7 @@ def make_heatmap(data: list[list[int]],
                  x_legend: list = None, y_legend: list = None,
                  title: str = None, xlabel: str = None, ylabel: str = None,
                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
-                 erase_last_plt: bool = True
+                 erase_last_plt: bool = True, contain_number: bool = True,
                  ):
 
     if erase_last_plt:
@@ -303,11 +361,13 @@ def make_heatmap(data: list[list[int]],
     num_cols = len(data[0])
 
     # Create heatmap
-    plt.imshow(data, cmap='viridis', interpolation='nearest')
+    plt.imshow(data, cmap='viridis', interpolation='nearest', vmin=1)
 
     # Add ticks
     if x_legend:
-        plt.xticks(range(num_cols), x_legend)
+        plt.xticks(range(1, num_cols+1), x_legend)
+    else:
+        plt.xticks(range(num_cols), range(1, num_cols + 1))
 
     if y_legend:
         plt.yticks(range(num_rows), y_legend)
@@ -316,10 +376,17 @@ def make_heatmap(data: list[list[int]],
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     # Add color bar
     cbar = plt.colorbar()
     cbar.set_label('Number of genes')
+
+    if contain_number:
+        # Add text labels inside heatmap cells
+        for i in range(len(data)):
+            for j in range(len(data[0])):
+                plt.text(j, i, str(data[i][j]), ha='center', va='center', color='black')
 
     _chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
 
@@ -328,7 +395,8 @@ def main(path: str, name_column: str, snp_column: str,
          simplified: bool = True, max_length: int = None,
          output_path: str = "output", output_warning: bool = True, job_name: str = "unnamed",
          heatmap: bool = True, barchart: bool = True,
-         tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True) -> int:
+         tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
+         file_name_to_species_path: str = None) -> int:
     # WARING: Non recursiv, pas de trie
 
     # ---- ---- Path Management ---- ---- #
@@ -354,6 +422,16 @@ def main(path: str, name_column: str, snp_column: str,
     # Generate output_dir
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
+
+    # File name to species name translation dict
+    translation_dict = {}
+    if file_name_to_species_path:
+        if os.path.isfile(file_name_to_species_path):
+            with open(file_name_to_species_path, "r") as file_flux:
+                translation_dict = dict(json.load(file_flux))
+
+        else:
+            print(f"Unable to load {file_name_to_species_path}. File names will not be translated to species name.")
 
     # Verify that the folder is empty
     elif output_warning and os.listdir(output_dir):
@@ -381,16 +459,22 @@ def main(path: str, name_column: str, snp_column: str,
 
     # ---- ---- Load files ---- ----
     all_snp = {}                        # {Number_of_snp, {File_name : Number_of_genes_with_this_number_of_snp}
-    all_files = os.listdir(path)        # List all targeted files
+    all_species = []                    # List all targeted files
 
     # process all files and load snp into all_files
-    for files in all_files:
+    for files in os.listdir(path):
         files_dict = extract_data_from_table(f"{path}{files}", key=name_column, value=snp_column,
                                              filter_=greater_than_0_int_filter)
-        all_snp = compile_gene_snp(files_dict, all_snp, group=files)
+
+        if files in translation_dict:
+            all_species.append(translation_dict[files])
+        else:
+            all_species.append(files)
+
+        all_snp = compile_gene_snp(files_dict, all_snp, group=all_species[-1])
 
     # ---- ---- Matrix and chart generation ---- ----
-    data, x_legend = make_data_matrix(all_snp, *all_files, simplified=simplified, max_length=max_length)
+    data, x_legend = make_data_matrix(all_snp, *all_species, simplified=simplified, max_length=max_length)
 
     if len(x_legend) == x_legend[-1]:
         # if the legend is equivalent of the automatic one, we use the automatic legend
@@ -402,7 +486,7 @@ def main(path: str, name_column: str, snp_column: str,
         x_legend = [str(item) for item in x_legend]
 
     for i in range(0, len(data)):
-        line_name = all_files[i]
+        line_name = all_species[i]
 
         # Make quantitative barchart
         if barchart:
@@ -433,7 +517,7 @@ def main(path: str, name_column: str, snp_column: str,
 
     # Heatmap generation
     if heatmap:
-        make_heatmap(data, y_legend=all_files, x_legend=x_legend,
+        make_heatmap(data, y_legend=all_species, x_legend=x_legend,
                      title="Number of genes with at least n SNP",
                      xlabel="Number of snp",
                      ylabel="Species names",
@@ -445,8 +529,10 @@ def main(path: str, name_column: str, snp_column: str,
 
     return 0
 if __name__ == "__main__":
-    main("tests", "Contig_name", "BiAllelic_SNP", output_warning=False,
-         max_length=5)
+
+    main("tests/data", "Contig_name", "BiAllelic_SNP", output_warning=False,
+         max_length=5, file_name_to_species_path="tests/tranlateFileName.json", job_name="Example")
+
 
 
 
