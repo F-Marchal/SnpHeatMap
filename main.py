@@ -160,7 +160,6 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group : str, *gr
         for i, group_name in enumerate(groups):
             data[i].extend(missing_x_values)
 
-            print(group_name, data[i])
             if group_name in group_at_this_position:
                 data[i][-1] = group_at_this_position[group_name]
 
@@ -253,30 +252,39 @@ def _chart_export(data: list[list[int]], show: bool = False, png: str = None, ts
         plt.show()
 
 
+def make_bar_char(data: list[int],
+                  x_legend: list = None, x_legend_is_int: bool = True, y_legend_is_int: bool = True,
+                  title: str = None, xlabel: str = None, ylabel: str = None,
+                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
+                  erase_last_plt: bool = True):
 
-"""def make_bar_chart(values: list[int or float],
-                   x_legend: list = None, y_legend: list = None,
-                   title: str = None, xlabel: str = None, ylabel: str = None,
-                   show: bool = False, png: str = None, tsv: str = None, erase: bool = True) -> plt:
-
-    if erase is True:
+    if erase_last_plt:
+        plt.close('all')
         plt.clf()
-        plt.close()
+        plt.cla()
 
-    # Create the bar chart
-    x_positions = range(len(x_legend))
-    plt.plot(x_positions, values, color='blue', alpha=0.7)
+    # Add ticks
+    if x_legend:
+        plt.bar(x_legend, data, color='skyblue')
+        plt.xticks(range(len(data)), x_legend)
 
-    # Set labels
+    else:
+        plt.bar(range(1, len(data) + 1), data, color='skyblue')
+
+    if y_legend_is_int:
+        plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+    if x_legend_is_int:
+        # plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        pass
+
+    # Add labels
     plt.xlabel(xlabel)
-    plt.xlabel(ylabel)
+    plt.ylabel(ylabel)
     plt.title(title)
-    
-    # Export chart
-    _chart_export(data=values, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show)
 
-    return plt
-"""
+    _chart_export(data=[data], x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
+
 
 def make_heatmap(data: list[list[int]],
                  x_legend: list = None, y_legend: list = None,
@@ -284,6 +292,7 @@ def make_heatmap(data: list[list[int]],
                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                  erase_last_plt: bool = True
                  ):
+
     if erase_last_plt:
         plt.close('all')
         plt.clf()
@@ -315,28 +324,131 @@ def make_heatmap(data: list[list[int]],
     _chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
 
 
-def main(path: str, ):
-    all_snp = {}
-    all_files = os.listdir(path)
+def main(path: str, name_column: str, snp_column: str,
+         simplified: bool = True, max_length: int = None,
+         output_path: str = "output", output_warning: bool = True, job_name: str = "unnamed",
+         heatmap: bool = True, barchart: bool = True,
+         tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True) -> int:
+    # WARING: Non recursiv, pas de trie
+
+    # ---- ---- Path Management ---- ---- #
+    # Assure that @p output_path point to a folder
+    if output_path[-1] not in ("/", "\\"):
+        output_path += "/"
+
+    # Assure that @p path point to a folder
+    if path[-1] not in ("/", "\\"):
+        path += "/"
+
+    # Create @p output_path if needed
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+
+    # Create file and directory path
+    output_dir = output_path + "/" + job_name + "/"
+    file_prefix = output_dir + job_name + "_"
+    heatmap_prefix = file_prefix + "Heatmap"
+    cumulative_prefix = file_prefix + "CumulativeBarchart_"
+    quantitative_prefix = file_prefix + "QuantitativeBarchart_"
+
+    # Generate output_dir
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
+    # Verify that the folder is empty
+    elif output_warning and os.listdir(output_dir):
+        r_ = input(f"Folder is not empty. Some files can be lost. ({output_dir})\nContinue ? (y / n) :")
+
+        if r_.lower() not in ("y", "ye", "yes", "t", "tr", "tru", "true"):
+            print("Job stopped")
+            return 1
+
+    # ---- ---- Export Control ---- ---  "
+    heat_png = f"{heatmap_prefix}" if png and heatmap else None
+    heat_tsv = f"{heatmap_prefix}" if tsv and heatmap else None
+    heat_svg = f"{heatmap_prefix}" if svg and heatmap else None
+    heat_show = show and heatmap
+
+    c_bar_png = f"{cumulative_prefix}" if png and barchart else None
+    c_bar_tsv = f"{cumulative_prefix}" if tsv and barchart else None
+    c_bar_svg = f"{cumulative_prefix}" if svg and barchart else None
+    c_bar_show = show and barchart
+
+    q_bar_png = f"{quantitative_prefix}" if png and barchart else None
+    q_bar_tsv = f"{quantitative_prefix}" if tsv and barchart else None
+    q_bar_svg = f"{quantitative_prefix}" if svg and barchart else None
+    q_bar_show = show and barchart
+
+    # ---- ---- Load files ---- ----
+    all_snp = {}                        # {Number_of_snp, {File_name : Number_of_genes_with_this_number_of_snp}
+    all_files = os.listdir(path)        # List all targeted files
+
+    # process all files and load snp into all_files
     for files in all_files:
-        files_dict = extract_data_from_table(path + "/" + files, key="Contig_name", value="BiAllelic_SNP",
+        files_dict = extract_data_from_table(f"{path}{files}", key=name_column, value=snp_column,
                                              filter_=greater_than_0_int_filter)
         all_snp = compile_gene_snp(files_dict, all_snp, group=files)
 
-    data, x_legend = make_data_matrix(all_snp, *all_files, simplified=True, max_length=28)
-    for i in range(0, len(data)):
-        data[i] = generate_cumulative_list(data[i], reversed_=True)
+    # ---- ---- Matrix and chart generation ---- ----
+    data, x_legend = make_data_matrix(all_snp, *all_files, simplified=simplified, max_length=max_length)
 
     if len(x_legend) == x_legend[-1]:
+        # if the legend is equivalent of the automatic one, we use the automatic legend
+        # (e.g. when @p simplified is False or when there is no simplification),
         x_legend = None
-    make_heatmap(data, y_legend=all_files, x_legend=x_legend, tsv="Alpha",
-                 title="Number of genes with at least n SNP",
-                 xlabel="Number of snp",
-                 ylabel="Species names", show=True, png="Alpha", svg="Alpha")
 
+    else:
+        # When x_legend is not composed of str and @p simplified is True, BarChart have weird behaviour.
+        x_legend = [str(item) for item in x_legend]
+
+    for i in range(0, len(data)):
+        line_name = all_files[i]
+
+        # Make quantitative barchart
+        if barchart:
+            make_bar_char(data[i], x_legend=x_legend,
+                          ylabel="Number of genes",
+                          xlabel="Number of snp",
+                          title=f"Number of snp per genes in {line_name}",
+                          show=q_bar_show,
+                          png=f"{q_bar_png}{line_name}" if q_bar_png else None,
+                          tsv=f"{q_bar_tsv}{line_name}" if q_bar_tsv else None,
+                          svg=f"{q_bar_svg}{line_name}" if q_bar_svg else None,
+                          )
+
+        # Replace the quantitative list by a cumulative list
+        data[i] = generate_cumulative_list(data[i], reversed_=True)
+
+        # Make cumulative Barchart
+        if barchart:
+            make_bar_char(data[i],
+                          show=c_bar_show, x_legend=x_legend,
+                          ylabel="Number of genes",
+                          xlabel="Number of snp",
+                          title=f"Number of genes with at least n snp in {line_name}",
+                          png=f"{c_bar_png}{line_name}" if c_bar_png else None,
+                          tsv=f"{c_bar_tsv}{line_name}" if c_bar_tsv else None,
+                          svg=f"{c_bar_svg}{line_name}" if c_bar_svg else None,
+                          )
+
+    # Heatmap generation
+    if heatmap:
+        make_heatmap(data, y_legend=all_files, x_legend=x_legend,
+                     title="Number of genes with at least n SNP",
+                     xlabel="Number of snp",
+                     ylabel="Species names",
+                     show=heat_show,
+                     png=heat_png,
+                     tsv=heat_tsv,
+                     svg=heat_svg,
+                     )
+
+    return 0
 if __name__ == "__main__":
-    main("tests")
+    main("tests", "Contig_name", "BiAllelic_SNP", output_warning=False,
+         max_length=5)
 
-    #TODO: Barplot for each files
+
+
     #TODO: Documentation
     #TODO: Test unitaire
