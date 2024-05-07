@@ -1,2 +1,2 @@
 # SnpHeatMap
-The goal of this project is to create a heatMap that show how many genes has at least n snp inside them.
+The goal of this project is to create a heatMap to show how many genes have at least a certain number of SNP (Single/Simple-Nucleotide Polymorphisms) in them.
