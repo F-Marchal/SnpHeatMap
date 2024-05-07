@@ -1,8 +1,23 @@
+"""! @brief -
+ @file main.py
+ @section libs Librairies/Modules
+  - os (link)
+  - json (link)
+  - matplotlib.pyplot (link)
+  - sys (link)
+  - getopt (link)
 
+ @section authors Author(s)
+  - Created by Florent Marchal on 07/05/2024 .
+"""
 import os
 import json
 import matplotlib.pyplot as plt
-import math
+import sys
+import getopt
+
+__help_message__ = ""
+
 
 def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
     """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
@@ -534,6 +549,49 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
          cumulative_heatmap: bool = False,
          tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
          sort_names: bool = True) -> int:
+    """!
+    @brief Create a number of chart related to snp analysis.
+
+    As an example we will consider the following flatFile :
+    | GeneName | GeneID | NumberOfSnp | GeneSize |
+    |----------|--------|-------------|----------|
+    | Gene1    | 123    | 5           | 1000     |
+    | Gene2    | 456    | 10          | 2000     |
+
+    Parameters :
+        @param path : str => Path that lead to a number of flatfile :
+            - .json : {complete file path : Species name}
+            - folder : Use file inside the folder (does not scan the folder recursively)
+
+        @param name_column : str => Name of the column that contain a primary key e.g. GeneName, GeneID. If two line
+        have the same "primary key", the last one will be used.
+        @param snp_column : str => Name of the column that contain a count of snp e.g. NumberOfSnp
+        @param file_separator : str = "\t" => The separator used in all flat file considered.
+        @param simplified : bool = True =>  Do number of snp represented by 0 gene are deleted from the result
+        @param max_length : int = None => Maximum length of each graph. keep the nth first result.
+        @param output_path : str = "output" => Where graphs are saved.
+        @param output_warning : bool = True => Ask confirmation when at least one file can be erased by this program.
+        @param job_name : str = "unnamed" => A name for this execution. (This creates a separated folder in
+         @p output_path)
+        @param global_heatmap : bool = True => Do a heatmap that is the combination of all cumulative_heatmap is created
+        @param quantitative_barchart : bool = False => Do this program create a barchart of snp distribution for each
+        file (Number of gene that have n snp)
+        @param cumulative_barchart : bool = False => Do this program create a barchart of snp distribution for each
+        file ? (Number of gene that have AT LEAST n snp)
+        @param cumulative_heatmap : bool = False => Do this program create a heatmap of snp distribution for each
+        file ? (Number of gene that have AT LEAST n snp)
+        @param tsv : bool = False => Do values used for chart are saved in a flatfile (.tsv)
+        @param png : bool = False => Do created charts are saved as png
+        @param show : bool = False => Do created charts are saved are shown
+            @warning Each time a char is shown, the program stop. It will resume when the chart is closed.
+        @param svg : bool = True => Do created charts are saved as svg (vectorize image)
+        @param sort_names : bool = True => Do species are sorted in lexicographic order ?
+
+    Returns :
+        @return int => if greater than 0, an error occurred.
+
+    """
+
     # WARING: Non recursiv, pas de trie
 
     # ---- ---- Path Management ---- ---- #
@@ -691,10 +749,43 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
 
 if __name__ == "__main__":
-    main("TargetedFiles.json",
-         "Contig_name", "BiAllelic_SNP", output_warning=False,
-         max_length=20, tsv=False, cumulative_heatmap=True,
+    """try:
+        opts, args = getopt.getopt(sys.argv[1:],
+                                   "hdvi:r:",
+                                   ["help", "debug", "verbose", "input=", "reference="])
+    except getopt.GetoptError as err:
+        print(__help_message__)
+        sys.exit(2)
 
-         job_name="Data")
+    if not opts:
+        print(__help_message__)
+        sys.exit(2)
+    
+    path = None
+    
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            print(__help_message__)
+            sys.exit()
+            
+        elif o in ("-i", "--input"):
+            folder_path = a
+            
+        elif o in ("-r", "--reference"):
+            ref_name = a
+            
+        else:
+            assert False, "unhandled option"
+    """
 
+
+    sys.exit(main("tests/data",
+                 "Contig_name", "BiAllelic_SNP", output_warning=False,
+                 max_length=20, tsv=True, cumulative_heatmap=True, cumulative_barchart=True, quantitative_barchart=True,
+
+                 job_name="Example"))
+
+    #TODO: Gettops
+    #TODO: complete main @brief
+    #TODO: complete file header
     #TODO: Unitary test
