@@ -2,6 +2,7 @@
 import os
 import json
 import matplotlib.pyplot as plt
+import math
 
 def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
     """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
@@ -396,14 +397,14 @@ def make_bar_char(data: list[int],
         plt.xticks(range(len(data)), x_legend)
 
     else:
-        plt.bar(range(1, len(data) + 1), data, color='skyblue')
+        x_legend = list(range(1, len(data) + 1))
+        plt.bar(x_legend, data, color='skyblue')
 
     if y_legend_is_int:
         plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     if x_legend_is_int:
-        # plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
-        pass
+        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     # Add labels
     plt.xlabel(xlabel)
@@ -419,6 +420,7 @@ def make_heatmap(data: list[list[int]],
                  title: str = None, xlabel: str = None, ylabel: str = None,
                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                  erase_last_plt: bool = True, contain_number: bool = True,
+                 test_color: str = "#a0a0a0", cmap: str = "jet",
                  ):
     """!
     @brief Create a heatmap using a bunch of argument.
@@ -428,7 +430,7 @@ def make_heatmap(data: list[list[int]],
     @param x_legend : list = None => Values used to label the x-axis.
     @param y_legend : list = None => Values used to label the y-axis.
     @param title : str = None => A title for this chart
-    @param xlabel : str = None => A title for the x-axis 
+    @param xlabel : str = None => A title for the x-axis
     @param ylabel : str = None => A title for the y-axis
     @param show : bool = False => Do current plot will be displayed ?
     @param png : str = None => Give a path to export the current plot as png
@@ -436,6 +438,26 @@ def make_heatmap(data: list[list[int]],
     @param svg : str = None => Give a path to export the current plot as svg
     @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot memory
     @param contain_number : bool = True => If True, all cells will contain theirs values.
+    @param test_color : str = #a0a0a0 => HTML color code for text inside cells
+        @note Only when contain_number is True
+    @param cmap : str = jet => Color mod. supported values are 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG',
+    'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r',
+    'Grays', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r',
+    'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 'Pastel2_r', 'PiYG', 'PiYG_r', 'PuBu', 'PuBuGn',
+    'PuBuGn_r', 'PuBu_r', 'PuOr', 'PuOr_r', 'PuRd', 'PuRd_r', 'Purples', 'Purples_r', 'RdBu', 'RdBu_r', 'RdGy',
+    'RdGy_r', 'RdPu', 'RdPu_r', 'RdYlBu', 'RdYlBu_r', 'RdYlGn', 'RdYlGn_r', 'Reds', 'Reds_r', 'Set1', 'Set1_r', 'Set2',
+     'Set2_r', 'Set3', 'Set3_r', 'Spectral', 'Spectral_r', 'Wistia', 'Wistia_r', 'YlGn', 'YlGnBu', 'YlGnBu_r', '
+     YlGn_r', 'YlOrBr', 'YlOrBr_r', 'YlOrRd', 'YlOrRd_r', 'afmhot', 'afmhot_r', 'autumn', 'autumn_r', 'binary',
+     'binary_r', 'bone', 'bone_r', 'brg', 'brg_r', 'bwr', 'bwr_r', 'cividis', 'cividis_r', 'cool', 'cool_r',
+     'coolwarm', 'coolwarm_r', 'copper', 'copper_r', 'cubehelix', 'cubehelix_r', 'flag', 'flag_r', 'gist_earth',
+     'gist_earth_r', 'gist_gray', 'gist_gray_r', 'gist_grey', 'gist_heat', 'gist_heat_r', 'gist_ncar', 'gist_ncar_r',
+     'gist_rainbow', 'gist_rainbow_r', 'gist_stern', 'gist_stern_r', 'gist_yarg', 'gist_yarg_r', 'gist_yerg',
+     'gnuplot', 'gnuplot2', 'gnuplot2_r', 'gnuplot_r', 'gray', 'gray_r', 'grey', 'hot', 'hot_r', 'hsv', 'hsv_r',
+     'inferno', 'inferno_r', 'jet', 'jet_r', 'magma', 'magma_r', 'nipy_spectral', 'nipy_spectral_r', 'ocean',
+     'ocean_r', 'pink', 'pink_r', 'plasma', 'plasma_r', 'prism', 'prism_r', 'rainbow', 'rainbow_r', 'seismic',
+     'seismic_r', 'spring', 'spring_r', 'summer', 'summer_r', 'tab10', 'tab10_r', 'tab20', 'tab20_r', 'tab20b',
+     'tab20b_r', 'tab20c', 'tab20c_r', 'terrain', 'terrain_r', 'turbo', 'turbo_r', 'twilight', 'twilight_r',
+     'twilight_shifted', 'twilight_shifted_r', 'viridis', 'viridis_r', 'winter', 'winter_r'
     """
 
     # Clear the last plot
@@ -449,13 +471,15 @@ def make_heatmap(data: list[list[int]],
     num_cols = len(data[0])
 
     # Create heatmap
-    plt.imshow(data, cmap='viridis', interpolation='nearest', vmin=1)
+    plt.figure(figsize=(num_cols + 1, max(num_rows + 1, 4)))
+    plt.imshow(data, cmap=cmap, interpolation='nearest', vmin=1)
 
     # Add ticks
     if x_legend:
         plt.xticks(range(1, num_cols+1), x_legend)
     else:
-        plt.xticks(range(num_cols), range(1, num_cols + 1))
+        x_legend = list(range(1, num_cols + 1))
+        plt.xticks(range(num_cols), x_legend)
 
     if y_legend:
         plt.yticks(range(num_rows), y_legend)
@@ -472,19 +496,44 @@ def make_heatmap(data: list[list[int]],
 
     if contain_number:
         # Add text labels inside heatmap cells
+        units = ['', 'k', 'M', 'G', 'T', 'P']
         for i in range(len(data)):
             for j in range(len(data[0])):
-                plt.text(j, i, str(data[i][j]), ha='center', va='center', color='black')
+                # pretreatment
+                str_data = str(data[i][j])
+                data_length = len(str_data)
+                data_pos = data_length % 3
+                data_units = data_length // 3
+
+                # Format units
+                if data_units - 1 <= len(units):
+                    if data_units == 0:
+                        pass
+
+                    elif data_pos == 0:
+                        str_data = f"{str_data[:3]}\n{units[data_units - 1]}"
+
+                    else:
+                        str_data = f"{str_data[:data_pos]},{str_data[data_pos: 3]}\n{units[data_units]}"
+
+                else:
+                    raise ValueError("Too many snp : " + str(data[i][j]))
+
+                # Place text
+                plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color)
+
+        pass
 
     _chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
 
 
-def main(path: str, name_column: str, snp_column: str,
+def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t",
          simplified: bool = True, max_length: int = None,
          output_path: str = "output", output_warning: bool = True, job_name: str = "unnamed",
-         heatmap: bool = True, barchart: bool = True,
+         global_heatmap: bool = True, quantitative_barchart: bool = False, cumulative_barchart: bool = False,
+         cumulative_heatmap: bool = False,
          tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
-         file_name_to_species_path: str = None) -> int:
+         sort_names: bool = True) -> int:
     # WARING: Non recursiv, pas de trie
 
     # ---- ---- Path Management ---- ---- #
@@ -492,9 +541,22 @@ def main(path: str, name_column: str, snp_column: str,
     if output_path[-1] not in ("/", "\\"):
         output_path += "/"
 
-    # Assure that @p path point to a folder
-    if path[-1] not in ("/", "\\"):
-        path += "/"
+    # Load files
+    if path[-5:] == ".json":
+        with open(path, "r", encoding="utf-8") as js_flux:
+            path_translation = dict(json.load(js_flux))
+            list_of_files = path_translation
+            file_path_prefix = ""
+
+    else:
+        # Assure that @p path point to a folder
+        if path[-1] not in ("/", "\\"):
+            file_path_prefix = path + "/"
+        else:
+            file_path_prefix = path
+
+        list_of_files = os.listdir(file_path_prefix)
+        path_translation = {}
 
     # Create @p output_path if needed
     if not os.path.exists(output_path):
@@ -511,16 +573,6 @@ def main(path: str, name_column: str, snp_column: str,
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    # File name to species name translation dict
-    translation_dict = {}
-    if file_name_to_species_path:
-        if os.path.isfile(file_name_to_species_path):
-            with open(file_name_to_species_path, "r") as file_flux:
-                translation_dict = dict(json.load(file_flux))
-
-        else:
-            print(f"Unable to load {file_name_to_species_path}. File names will not be translated to species name.")
-
     # Verify that the folder is empty
     elif output_warning and os.listdir(output_dir):
         r_ = input(f"Folder is not empty. Some files can be lost. ({output_dir})\nContinue ? (y / n) :")
@@ -530,36 +582,44 @@ def main(path: str, name_column: str, snp_column: str,
             return 1
 
     # ---- ---- Export Control ---- ---  "
-    heat_png = f"{heatmap_prefix}" if png and heatmap else None
-    heat_tsv = f"{heatmap_prefix}" if tsv and heatmap else None
-    heat_svg = f"{heatmap_prefix}" if svg and heatmap else None
-    heat_show = show and heatmap
+    heat_png = f"{heatmap_prefix}" if png and global_heatmap else None
+    heat_tsv = f"{heatmap_prefix}" if tsv and global_heatmap else None
+    heat_svg = f"{heatmap_prefix}" if svg and global_heatmap else None
+    heat_show = show and global_heatmap
 
-    c_bar_png = f"{cumulative_prefix}" if png and barchart else None
-    c_bar_tsv = f"{cumulative_prefix}" if tsv and barchart else None
-    c_bar_svg = f"{cumulative_prefix}" if svg and barchart else None
-    c_bar_show = show and barchart
+    c_heat_png = f"{heatmap_prefix}" if png and global_heatmap else None
+    c_heat_tsv = f"{heatmap_prefix}" if tsv and global_heatmap else None
+    c_heat_svg = f"{heatmap_prefix}" if svg and global_heatmap else None
+    c_heat_show = show and global_heatmap
 
-    q_bar_png = f"{quantitative_prefix}" if png and barchart else None
-    q_bar_tsv = f"{quantitative_prefix}" if tsv and barchart else None
-    q_bar_svg = f"{quantitative_prefix}" if svg and barchart else None
-    q_bar_show = show and barchart
+    c_bar_png = f"{cumulative_prefix}" if png and cumulative_barchart else None
+    c_bar_tsv = f"{cumulative_prefix}" if tsv and cumulative_barchart else None
+    c_bar_svg = f"{cumulative_prefix}" if svg and cumulative_barchart else None
+    c_bar_show = show and cumulative_barchart
+
+    q_bar_png = f"{quantitative_prefix}" if png and quantitative_barchart else None
+    q_bar_tsv = f"{quantitative_prefix}" if tsv and quantitative_barchart else None
+    q_bar_svg = f"{quantitative_prefix}" if svg and quantitative_barchart else None
+    q_bar_show = show and quantitative_barchart
 
     # ---- ---- Load files ---- ----
     all_snp = {}                        # {Number_of_snp, {File_name : Number_of_genes_with_this_number_of_snp}
     all_species = []                    # List all targeted files
 
     # process all files and load snp into all_files
-    for files in os.listdir(path):
-        files_dict = extract_data_from_table(f"{path}{files}", key=name_column, value=snp_column,
-                                             filter_=greater_than_0_int_filter)
+    for files in list_of_files:
+        files_dict = extract_data_from_table(f"{file_path_prefix}{files}", key=name_column, value=snp_column,
+                                             filter_=greater_than_0_int_filter, separator=file_separator)
 
-        if files in translation_dict:
-            all_species.append(translation_dict[files])
+        if files in path_translation:
+            all_species.append(path_translation[files])
         else:
             all_species.append(files)
 
         all_snp = compile_gene_snp(files_dict, all_snp, group=all_species[-1])
+
+    if sort_names:
+        all_species.sort()
 
     # ---- ---- Matrix and chart generation ---- ----
     data, x_legend = make_data_matrix(all_snp, *all_species, simplified=simplified, max_length=max_length)
@@ -577,7 +637,7 @@ def main(path: str, name_column: str, snp_column: str,
         line_name = all_species[i]
 
         # Make quantitative barchart
-        if barchart:
+        if quantitative_barchart:
             make_bar_char(data[i], x_legend=x_legend,
                           ylabel="Number of genes",
                           xlabel="Number of snp",
@@ -592,7 +652,7 @@ def main(path: str, name_column: str, snp_column: str,
         data[i] = generate_cumulative_list(data[i], reversed_=True)
 
         # Make cumulative Barchart
-        if barchart:
+        if cumulative_barchart:
             make_bar_char(data[i],
                           show=c_bar_show, x_legend=x_legend,
                           ylabel="Number of genes",
@@ -604,28 +664,37 @@ def main(path: str, name_column: str, snp_column: str,
                           )
 
     # Heatmap generation
-    if heatmap:
+    if cumulative_heatmap:
+        for i, lines in enumerate(data):
+            make_heatmap([lines], y_legend=[""], x_legend=x_legend,
+                         title=f"Number of genes with at least n SNP : {all_species[i]}",
+                         xlabel="Number of snp",
+                         ylabel="Species names",
+                         show=c_heat_show,
+                         png=f"{c_heat_png}_{all_species[i]}" if c_heat_png else None,
+                         tsv=f"{c_heat_tsv}_{all_species[i]}" if c_heat_tsv else None,
+                         svg=f"{c_heat_svg}_{all_species[i]}" if c_heat_svg else None,
+                        )
+
+    if global_heatmap:
         make_heatmap(data, y_legend=all_species, x_legend=x_legend,
                      title="Number of genes with at least n SNP",
                      xlabel="Number of snp",
                      ylabel="Species names",
                      show=heat_show,
-                     png=heat_png,
-                     tsv=heat_tsv,
-                     svg=heat_svg,
+                     png=heat_png + "_global" if heat_png else None,
+                     tsv=heat_tsv + "_global" if heat_tsv else None,
+                     svg=heat_svg + "_global" if heat_svg else None,
                      )
 
     return 0
+
+
 if __name__ == "__main__":
-    main("C:/Users/marchal/Progs-old/HeatMap - docs/transfer_7388211_files_ebe9a4ad/output",
+    main("TargetedFiles.json",
          "Contig_name", "BiAllelic_SNP", output_warning=False,
-         max_length=20, tsv=True,
+         max_length=20, tsv=False, cumulative_heatmap=True,
 
-         job_name="Alpha")
+         job_name="Data")
 
-
-
-
-    #TODO: Documentation
-    #TODO: Test unitaire
-    #TODO: Sep
+    #TODO: Unitary test
