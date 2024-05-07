@@ -3,22 +3,17 @@ import os
 import json
 import matplotlib.pyplot as plt
 
-
 def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
     """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
+    @param legend : Names all the line's columns. Example: ["A", "B", "C"]
+    @param line : Contains all the line's values. Example: "1|2|3|", "1|2|3" ...
+    @param separator : The symbol that splits the line's values. Example: "|", "\n", "\t" ...
+    @return A dictionary composed of legend's values and line's values.
+        Example:  @code {"A": "1", "B": "2", "C": "3"}  @endcode (using previous examples)
 
-    @cond Parameters:                                                                                       @endcond
-        @param legend : Names all the line's columns. Example: ["A", "B", "C"]
-        @param line : Contains all the line's values. Example: "1|2|3|", "1|2|3" ...
-        @param separator : The symbol that splits the line's values. Example: "|", "\n", "\t" ...
-
-    @cond Returns:                                                                                          @endcond
-        @return A dictionary composed of legend's values and line's values.
-            Example:  @code {"A": "1", "B": "2", "C": "3"}  @endcode (using previous examples)
-
-        @note The returned dict always contain the same umber of object than legend.
-            - If legend > line : part of the legend's values will point to an empty string
-            - If legend < line : part of the line will be ignored
+    @note The returned dict always contain the same umber of object than legend.
+        - If legend > line : part of the legend's values will point to an empty string
+        - If legend < line : part of the line will be ignored
     """
 
     parsed_line = {}
@@ -40,24 +35,21 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
 
     @warning If the column @p key contains the same value multiple times, only the last one is kept.
 
-    @cond Parameters:                                                                                       @endcond
-        @param path : Path to a flatFile.
-        @param key : A column name that can be found in the legend. This will be used as a key in the returned dict.
-                Example: "Column3"
-        @param value : A column name that can be found in the legend. This will be used as a value in the returned dict
-                WHEN @p filter returns None or True. Example: "Column2"
-        @param separator : The symbol that splits line's values. Example: "|", "\n", "\t" ...
-        @param legend : If None: The first non-empty line in the file split using @p separator. Else: A list of column
-                names. Example: [Column1, Column2, Column3]
-        @param filter_ : A function that accepts 3 arguments: @p key, @p value, and the parsed line (dict). It
-                selects/generates the value present next to each key.
-                    - If it returns True or None: value in the column @p value.
-                    - If it returns False: this line is ignored.
-                    - Else: The returned value is used (instead of the content of the column @p value).
-        @note filter_ is called one time per line.
-
-    @cond Returns:                                                                                          @endcond
-        @return A dictionary: {values in the column @p key (values that do not pass @p filter_ are ignored): values in the column @p value OR value returned by @p filter_}
+    @param path : Path to a flatFile.
+    @param key : A column name that can be found in the legend. This will be used as a key in the returned dict.
+            Example: "Column3"
+    @param value : A column name that can be found in the legend. This will be used as a value in the returned dict
+            WHEN @p filter returns None or True. Example: "Column2"
+    @param separator : The symbol that splits line's values. Example: "|", "\n", "\t" ...
+    @param legend : If None: The first non-empty line in the file split using @p separator. Else: A list of column
+            names. Example: [Column1, Column2, Column3]
+    @param filter_ : A function that accepts 3 arguments: @p key, @p value, and the parsed line (dict). It
+            selects/generates the value present next to each key.
+                - If it returns True or None: value in the column @p value.
+                - If it returns False: this line is ignored.
+                - Else: The returned value is used (instead of the content of the column @p value).
+    @note filter_ is called one time per line.
+    @return A dictionary: {values in the column @p key (values that do not pass @p filter_ are ignored): values in the column @p value OR value returned by @p filter_}
     """
     # Open file
     flux = open(path, "r", encoding="UTF-8")
@@ -110,13 +102,11 @@ def greater_than_0_int_filter(_, key: int=None, dictionary: dict = None) -> bool
     @brief Test if the value in front of the key @p key inside @p dictionary can be an integer bigger than 0.
     Meant to be used inside  @ref extract_data_from_table as a "filter_"
 
-    @cond Parameters:                                                                                       @endcond
-        @param _ => Unused parameter. Exist due to how "filter_" in @extract_data_from_table works
-        @param key : int = None => A key contained by @p dictionary.
-        @param dictionary : dict = None => A dictionary that contain @p key
+    @param _ => Unused parameter. Exist due to how "filter_" in @extract_data_from_table works
+    @param key : int = None => A key contained by @p dictionary.
+    @param dictionary : dict = None => A dictionary that contain @p key
 
-    @cond Returns:                                                                                          @endcond
-        @return bool => True : Yes ; False : No.
+    @return bool => True : Yes ; False : No.
 
     """
     try:
@@ -133,17 +123,15 @@ def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[s
     of all keys (i.e. snp number). This dict contain the @p group (key) and the number of occurrences of this
     snp number for this key.
 
-    @cond Parameters:                                                                                       @endcond
-        @param genes_snp : dict[str,any] => A dictionary from @ref extract_data_from_table.
-            e.g. {gene_1: number_of_snp_in_gene_1} =>  @code {"gene1": 3}  @endcode
-            @note Values (number of snp) inside this dict are trans typed into integers.
-        @param dict_of_number : dict[int, dict[str,int]] = None.
-            A dict with the same structure as dictionaries returned by this function.
-        @param group : str = "None" => Each occurrence of a number of snp increment the counter related to this group.
+    @param genes_snp : dict[str,any] => A dictionary from @ref extract_data_from_table.
+        e.g. {gene_1: number_of_snp_in_gene_1} =>  @code {"gene1": 3}  @endcode
+        @note Values (number of snp) inside this dict are trans typed into integers.
+    @param dict_of_number : dict[int, dict[str,int]] = None.
+        A dict with the same structure as dictionaries returned by this function.
+    @param group : str = "None" => Each occurrence of a number of snp increment the counter related to this group.
 
-    @cond Returns:                                                                                          @endcond
-        @return dict[int, dict[str, int]] => A dictionary that store all number of snp found along with the number of
-        occurrences {number_of_snp_1 : {group1: number_of_occurrences_of_number_of_snp_1_in_this_group}
+    @return dict[int, dict[str, int]] => A dictionary that store all number of snp found along with the number of
+    occurrences {number_of_snp_1 : {group1: number_of_occurrences_of_number_of_snp_1_in_this_group}
     """
     dict_of_number = {} if dict_of_number is None else dict_of_number
 
@@ -183,25 +171,23 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
                            } @endcode
     @endparblock
 
-    @cond Parameters:                                                                                       @endcond
-        @param compiled_dict : dict[int,dict[str,int]] => a compiled dict from @ref compile_gene_snp
-        @param group : str => A group name (e.g. Species name : "E. coli")
-        @param *groups : str => Same as @p group. Additional species name.
-        @param simplified : bool = True => Do number of snp represented by 0 gene are deleted from the result ?
-        @note This the presence / absence of a number is affected by other groups
-            - with group="E. coli":
-                - If True: @code ([[5, 3, 1]], [1, 2, 4]) @endcode
-                - If False: @code ([[5, 3, 0, 1]], [1, 2, 3, 4]) @endcode
-            - with group="E. coli" and groups= ("HIV", ):
-                - If True: @code ([[5, 3, 0, 1], [0, 4, 2, 1]], [1, 2, 4])  @endcode
-        @param max_length : int = None => Limit the length of each lines of the matrix.
+    @param compiled_dict : dict[int,dict[str,int]] => a compiled dict from @ref compile_gene_snp
+    @param group : str => A group name (e.g. Species name : "E. coli")
+    @param *groups : str => Same as @p group. Additional species name.
+    @param simplified : bool = True => Do number of snp represented by 0 gene are deleted from the result ?
+    @note This the presence / absence of a number is affected by other groups
+        - with group="E. coli":
+            - If True: @code ([[5, 3, 1]], [1, 2, 4]) @endcode
+            - If False: @code ([[5, 3, 0, 1]], [1, 2, 3, 4]) @endcode
+        - with group="E. coli" and groups= ("HIV", ):
+            - If True: @code ([[5, 3, 0, 1], [0, 4, 2, 1]], [1, 2, 4])  @endcode
+    @param max_length : int = None => Limit the length of each lines of the matrix.
 
-    @cond Returns:                                                                                          @endcond
-        @return (list[list[int]], list[int]) => Return a matrix and a list. Each lines of the matrix represent the
-        number of genes of a species (group) that contain n snp : If the position 1 of a line is equal to 4, there is
-        4 genes in the selected species that contain list[i] snp.
-        The y axes can be labeled using @p group and @p groups (order in conserved) and  the x-axis is labeled by
-        the list[int].
+    @return (list[list[int]], list[int]) => Return a matrix and a list. Each lines of the matrix represent the
+    number of genes of a species (group) that contain n snp : If the position 1 of a line is equal to 4, there is
+    4 genes in the selected species that contain list[i] snp.
+    The y axes can be labeled using @p group and @p groups (order in conserved) and  the x-axis is labeled by
+    the list[int].
 
     @note For some return example, see @p simplified for return example
     """
@@ -247,15 +233,15 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
 
 def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed_=False) -> list[int]:
     """!
-    @brief [Function's description]
+    @brief Take a list of number and sum all values.
+    @code
+    [0, 5, 6, 1] => [0+5+6+1, 5+6+1, 6+1, 1] == [12, 12, 7, 1]
+    @encode
 
+    @param list_of_numbers : list[int] or list[float] => A list that contain numbers.
+    @param reversed_ = False => Do the accumulation start at the end and end at the beginning.
 
-    Parameters :
-        @param list_of_numbers : list[int]orlist[float] => [description]
-        @param reversed_ = False => [description]
-
-    Returns :
-        @return list[int] => [description]
+    @return list[int] => A list of number
 
     """
 
@@ -282,6 +268,22 @@ def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed
 
 def export_list_in_tsv_as_rows(path: str, *rows, file_mode="w", encoding="UTF-8",
                                y_legend: list = None, x_legend: list = None):
+    """!
+    @brief Accept a number of list that represent rows of a tab and turn it intoo a tsv (flat file).
+
+    @warning  Any "\t" or "\n" in rows' values will disrupt lines and / or columns
+
+    Parameters :
+        @param path : str => path (and name) of the file that will be written.
+        @param *rows => A number of list
+        @param file_mode = "w" => "w" or "a"
+            - "w": if a file with the same path exist, old file is erased
+            - "a": if a file with the same path exist, old file append new values
+        @param encoding = "UTF-8" => File encoding
+        @param y_legend : list = None => A list of item to be display in the first column
+        @param x_legend : list = None => A list of item to be display at top of the file
+
+    """
     # WARNING: \t and \n in rows can distributed lines / columns
 
     # Open file
@@ -326,6 +328,22 @@ def export_list_in_tsv_as_rows(path: str, *rows, file_mode="w", encoding="UTF-8"
 
 def _chart_export(data: list[list[int]], show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                   x_legend: list = None, y_legend: list = None):
+    """!
+    @brief Export the current chart.
+
+    @note if data is the only argument, nothing happen.
+
+    @param data : list[list[int]] => A matrix of values
+    @param show : bool = False => Do current plot will be displayed ?
+    @param png : str = None => Give a path to export the current plot as png
+    @param tsv : str = None => Give a path to export @p data into a tsv.
+    @param svg : str = None => Give a path to export the current plot as svg
+    @param y_legend : list = None => When tsv is not none: A list of item to be display in the first column
+                (@ref export_list_in_tsv_as_rows)
+    @param x_legend : list = None => When tsv is not none: A list of item to be display at top of the file
+                (@ref export_list_in_tsv_as_rows)
+
+    """
     # Png export
     if png is not None:
         plt.savefig(png + ".png", format='png')
@@ -348,6 +366,23 @@ def make_bar_char(data: list[int],
                   title: str = None, xlabel: str = None, ylabel: str = None,
                   show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                   erase_last_plt: bool = True):
+    """!
+    @brief Create a @ref plt.bar using a bunch of argument.
+    This function is made to assure a correct looking legend when used for snp.
+
+    @param data : list[int] => A list of integer
+    @param x_legend : list = None => Values used to legend the x-axis.
+    @param x_legend_is_int : bool = True => Do x-axis represent oly integer
+    @param y_legend_is_int : bool = True => Do y-axis represent oly integer
+    @param title : str = None => A title for this chart
+    @param xlabel : str = None => A title for the x-axis
+    @param ylabel : str = None => A title for the y-axis
+    @param show : bool = False => Do current plot will be displayed ?
+    @param png : str = None => Give a path to export the current plot as png
+    @param tsv : str = None => Give a path to export @p data into a tsv.
+    @param svg : str = None => Give a path to export the current plot as svg
+    @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot memory
+    """
 
     # Clear the last plot
     if erase_last_plt:
@@ -385,6 +420,24 @@ def make_heatmap(data: list[list[int]],
                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                  erase_last_plt: bool = True, contain_number: bool = True,
                  ):
+    """!
+    @brief Create a heatmap using a bunch of argument.
+    This function is made to assure a correct looking legend when used for snp.
+
+    @param data : list[int] => A list of integer
+    @param x_legend : list = None => Values used to label the x-axis.
+    @param y_legend : list = None => Values used to label the y-axis.
+    @param title : str = None => A title for this chart
+    @param xlabel : str = None => A title for the x-axis 
+    @param ylabel : str = None => A title for the y-axis
+    @param show : bool = False => Do current plot will be displayed ?
+    @param png : str = None => Give a path to export the current plot as png
+    @param tsv : str = None => Give a path to export @p data into a tsv.
+    @param svg : str = None => Give a path to export the current plot as svg
+    @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot memory
+    @param contain_number : bool = True => If True, all cells will contain theirs values.
+    """
+
     # Clear the last plot
     if erase_last_plt:
         plt.close('all')
@@ -564,11 +617,15 @@ def main(path: str, name_column: str, snp_column: str,
 
     return 0
 if __name__ == "__main__":
-    main("tests/data", "Contig_name", "BiAllelic_SNP", output_warning=False,
-         max_length=5, file_name_to_species_path="tests/tranlateFileName.json", job_name="Example")
+    main("C:/Users/marchal/Progs-old/HeatMap - docs/transfer_7388211_files_ebe9a4ad/output",
+         "Contig_name", "BiAllelic_SNP", output_warning=False,
+         max_length=20, tsv=True,
+
+         job_name="Alpha")
 
 
 
 
     #TODO: Documentation
     #TODO: Test unitaire
+    #TODO: Sep
