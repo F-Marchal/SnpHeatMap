@@ -10,13 +10,14 @@
  @section authors Author(s)
   - Created by Florent Marchal on 07/05/2024 .
 """
+__help_message__ = __doc__
 import os
 import json
 import matplotlib.pyplot as plt
-import sys
 import getopt
+# from PIL import Image
 
-__help_message__ = ""
+
 
 
 def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
@@ -90,10 +91,10 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
                 raise ValueError(f"Both key ('{key}') and value {value} should be contained inside the legend : {legend}")
 
             continue
-        
+
         # Parse the line
         parsed_line = parse_line(legend, line, separator)
-        
+
         # Apply the filter_
         func_result = filter_(key, value, parsed_line) if filter_ else None
         if func_result is False:
@@ -197,7 +198,8 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
             - If False: @code ([[5, 3, 0, 1]], [1, 2, 3, 4]) @endcode
         - with group="E. coli" and groups= ("HIV", ):
             - If True: @code ([[5, 3, 0, 1], [0, 4, 2, 1]], [1, 2, 4])  @endcode
-    @param max_length : int = None => Limit the length of each lines of the matrix.
+    @param max_length : int = None => Limit the length of each lines of the matrix. should be greater than 0. If not,
+    max_length is ignored.
 
     @return (list[list[int]], list[int]) => Return a matrix and a list. Each lines of the matrix represent the
     number of genes of a species (group) that contain n snp : If the position 1 of a line is equal to 4, there is
@@ -207,6 +209,9 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
 
     @note For some return example, see @p simplified for return example
     """
+    if max_length <= 0:
+        max_length = None
+
     # Variables
     groups = [group, *groups]                       # Merge @p group and @p groups
     data = [list() for _ in range(0, len(groups))]  # Data matrix
@@ -367,6 +372,9 @@ def _chart_export(data: list[list[int]], show: bool = False, png: str = None, ts
     # svg export (Scalable Vector Graphic )
     if svg is not None:
         plt.savefig(svg + ".svg", format='svg')
+        with open(svg + ".svg", "a") as flux:
+            flux.write("Bonsoir")
+            print("la")
 
     # Export tsv (flat file)
     if tsv is not None:
@@ -397,10 +405,10 @@ def make_bar_char(data: list[int],
     @param png : str = None => Give a path to export the current plot as png
     @param tsv : str = None => Give a path to export @p data into a tsv.
     @param svg : str = None => Give a path to export the current plot as svg
-    @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot memory
+    @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot display
     """
 
-    # Clear the last plot
+    # Clear last plot
     if erase_last_plt:
         plt.close('all')
         plt.clf()
@@ -415,6 +423,7 @@ def make_bar_char(data: list[int],
         x_legend = list(range(1, len(data) + 1))
         plt.bar(x_legend, data, color='skyblue')
 
+    # Assure that y-axis and x-axis use display only integer. (Just some plt magic)
     if y_legend_is_int:
         plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
@@ -425,6 +434,7 @@ def make_bar_char(data: list[int],
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
+    plt.gcf().canvas.manager.set_window_title(title)
 
     # export chart
     _chart_export(data=[data], x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
@@ -436,7 +446,7 @@ def make_heatmap(data: list[list[int]],
                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                  erase_last_plt: bool = True, contain_number: bool = True,
                  test_color: str = "#a0a0a0", cmap: str = "jet",
-                 ):
+                ):
     """!
     @brief Create a heatmap using a bunch of argument.
     This function is made to assure a correct looking legend when used for snp.
@@ -477,9 +487,9 @@ def make_heatmap(data: list[list[int]],
 
     # Clear the last plot
     if erase_last_plt:
-        plt.close('all')
         plt.clf()
         plt.cla()
+        plt.close('all')
 
     # Number of rows and columns
     num_rows = len(data)
@@ -503,6 +513,7 @@ def make_heatmap(data: list[list[int]],
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
+    plt.gcf().canvas.manager.set_window_title(title)
     plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     # Add color bar
@@ -537,18 +548,204 @@ def make_heatmap(data: list[list[int]],
                 # Place text
                 plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color)
 
-        pass
+
 
     _chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
 
 
+def _auto_getopts_simple_value(value_restriction: tuple[any, any], use_default=False) -> any:
+    """!
+    @brief Internal function used by  @ref auto_getopts.
+
+    @param value_restriction : tuple[any, any] => A tuple of two value. (Default value, normal value).
+    (False, True) when None
+    @param use_default = False => Do the default value is returned
+
+     @return any =>
+        - True if value_restriction is None
+        - Default value if @p value_restriction is True (@p value_restriction [1])
+        - Normal value if @p value_restriction is False (@p value_restriction [0])
+    """
+    if value_restriction is None:
+        value_restriction = (False, True)
+
+    if use_default:
+        return value_restriction[0]
+
+    else:
+        return value_restriction[1]
+
+
+def _auto_getopts_complex_value(value_restriction, value, use_default=False) -> any:
+    """!
+    @brief Internal function used by  @ref auto_getopts. Use it to apply a number of restriction on a value.
+
+    Parameters :
+        @param value_restriction : tuple[any, callable] => > A tuple of two value. (Default value, normal value).
+         (False, True) when None
+         - if value_restriction[0] is callable : default = result of the function (no argument is given)
+         - if value_restriction[0] is not callable : default = value_restriction[0]
+         - if value_restriction[1] callable : is applied to @p value, the result is used as return value. If None
+         @p value is returned with no change
+        @param value => Value that can be returned. This value pass inside @p value_restriction [1]
+        @param use_default = False => Do the default value is returned
+
+     @return any => @p value transformed by  @p value_restriction [1]
+    """
+    if value_restriction is None:
+        value_restriction = (None, None)
+
+    if use_default:
+        if callable(value_restriction[0]):
+            return value_restriction[0]()
+        else:
+            return value_restriction[0]
+
+    elif value_restriction[1] is None:
+        return value
+    else:
+        return value_restriction[1](value)
+
+
+def auto_getopts(argv: list[str], getopts_options, *mandatory, help_message: str = None, force_default=True) -> dict:
+
+    option_dict = {}            # Will store options
+
+    # Parse @p getopts_options
+    short_opt = ""
+    long_opt = []
+    simple_keys = {}    # Keys that are supposed to have 2 values (True / False)
+    complexe_keys = {}  # Keys that are supposed to have more than 2 values
+    mandatory = set(mandatory)
+
+    for long_keys, short_keys_and_value_restriction in getopts_options.items():
+        # Unpack short_keys and filter when needed
+        if isinstance(short_keys_and_value_restriction, tuple):
+            short_keys, value_restriction = short_keys_and_value_restriction
+        else:
+            short_keys = short_keys_and_value_restriction
+            value_restriction = None
+
+        # Save long_keys and short_keys
+        long_opt.append(long_keys)
+        short_opt += short_keys
+
+        # Associate short_keys and long_keys with theirs filters
+        if short_keys[-1] == ":" and long_keys[-1] == "=":
+            # Keys with multiple values
+
+            # Remove ":" and "="
+            long_keys = long_keys[:-1]
+            short_keys = short_keys[:-1]
+
+            if "--" + long_keys in simple_keys or "--" +long_keys in complexe_keys:
+                raise KeyError(f"{long_keys} long key is repeated.")
+
+            if  "-" + short_keys in simple_keys or "-" + short_keys in complexe_keys:
+                raise KeyError(f"{short_keys} long key is repeated.")
+
+            # Save options
+            complexe_keys["--" + long_keys] = (value_restriction, long_keys)
+            complexe_keys["-" + short_keys] = (value_restriction, long_keys)
+
+            if force_default:
+                option_dict[long_keys] = _auto_getopts_complex_value(value_restriction, None, use_default=True)
+
+        elif short_keys[-1] != ":" and long_keys[-1] != "=":
+            # Keys with two values
+            if value_restriction is None:
+                value_restriction = (False, True)
+
+            if "--" + long_keys in simple_keys or "--" + long_keys in complexe_keys:
+                raise KeyError(f"{long_keys} long key is repeated.")
+
+            if "-" + short_keys in simple_keys or "-" + short_keys in complexe_keys:
+                raise KeyError(f"{short_keys} long key is repeated.")
+
+            simple_keys["--" + long_keys] = (value_restriction, long_keys)
+            simple_keys["-" + short_keys] = (value_restriction, long_keys)
+
+            if force_default:
+                option_dict[long_keys] = _auto_getopts_simple_value(value_restriction, use_default=True)
+
+        # Verify short and long keys have no conflictual behaviors.
+        else:
+            # Conflict short key / long key
+            if short_keys[-1] != ":":
+                error_message = f"short key ('{short_keys}') ) do not asks for a value but long key do ('{long_keys}')."
+            else:
+                error_message = f"long key ('{long_keys}') do not asks for a value but short key do ('{short_keys}')."
+
+            raise ValueError(f"Error in parameters definitions : " + error_message)
+
+    try:
+        opts, unparsed = getopt.getopt(argv, short_opt, long_opt)
+
+        if len(opts) == 0 and len(unparsed) >= 1:
+            possible_keys = list(getopts_options.keys())
+            i = 0
+
+            while (i < len(possible_keys) and i < len(unparsed) and
+                   possible_keys[i][-1] == "=" and unparsed[i][0] != "-"):
+                opts.append(("--" + possible_keys[i][:-1], unparsed[i]))
+                i += 1
+
+            new_opts, unparsed = getopt.getopt(unparsed[i:], short_opt, long_opt)
+            opts.extend(new_opts)
+
+        if unparsed:
+            raise KeyError(f"Can not understand all options : {' '.join(unparsed)} "
+                           f"Understood :  {opts}")
+
+    except getopt.GetoptError as E:
+        print(__help_message__)
+        raise E
+
+    for option, value in opts:
+
+        if option in simple_keys:
+            # python3 main.py -rf --> [("-r", "f")].
+            # That not what we want. We want  :
+            # python3 main.py -rf -->[("-r", ""), ("-f", "")]:
+            # In order to achieve that "value" at the end of opts
+
+            if value:
+                opts.extend([("-" + other_options, "") for other_options in value])
+
+            # Apply filter
+            value_restriction, option_name = simple_keys[option]
+            option_dict[option_name] = _auto_getopts_simple_value(value_restriction)
+
+        elif option in complexe_keys:
+            value_restriction, option_name = complexe_keys[option]
+            option_dict[option_name] = _auto_getopts_complex_value(value_restriction, value)
+
+        else:
+            if help_message:
+                print(help_message)
+
+            raise KeyError("Unknown option, can not proceed : " + option)
+
+        if option_name in mandatory:
+            mandatory.remove(option_name)  # option_name comes from precedent if / else
+
+    if mandatory:
+        raise KeyError(f"{len(mandatory)} argument missing : {', '.join(mandatory)}")
+
+    if help_message and "help" in option_dict:
+        del option_dict["help"]
+
+    return option_dict
+
+
 def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t",
          simplified: bool = True, max_length: int = None,
-         output_path: str = "output", output_warning: bool = True, job_name: str = "unnamed",
+         output_path: str = "output", output_warning: bool = True, job_name: str = None,
          global_heatmap: bool = True, quantitative_barchart: bool = False, cumulative_barchart: bool = False,
          cumulative_heatmap: bool = False,
          tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
-         sort_names: bool = True) -> int:
+         sort_by_name: bool = True,
+         show_values: bool = False) -> int:
     """!
     @brief Create a number of chart related to snp analysis.
 
@@ -558,46 +755,66 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     | Gene1    | 123    | 5           | 1000     |
     | Gene2    | 456    | 10          | 2000     |
 
-    Parameters :
-        @param path : str => Path that lead to a number of flatfile :
-            - .json : {complete file path : Species name}
-            - folder : Use file inside the folder (does not scan the folder recursively)
+    @param path : str => Path that lead to a number of flatfile :
+        - .json : {complete file path : Species name}
+        - folder : Use file inside the folder (does not scan the folder recursively)
 
-        @param name_column : str => Name of the column that contain a primary key e.g. GeneName, GeneID. If two line
-        have the same "primary key", the last one will be used.
-        @param snp_column : str => Name of the column that contain a count of snp e.g. NumberOfSnp
-        @param file_separator : str = "\t" => The separator used in all flat file considered.
-        @param simplified : bool = True =>  Do number of snp represented by 0 gene are deleted from the result
-        @param max_length : int = None => Maximum length of each graph. keep the nth first result.
-        @param output_path : str = "output" => Where graphs are saved.
-        @param output_warning : bool = True => Ask confirmation when at least one file can be erased by this program.
-        @param job_name : str = "unnamed" => A name for this execution. (This creates a separated folder in
-         @p output_path)
-        @param global_heatmap : bool = True => Do a heatmap that is the combination of all cumulative_heatmap is created
-        @param quantitative_barchart : bool = False => Do this program create a barchart of snp distribution for each
-        file (Number of gene that have n snp)
-        @param cumulative_barchart : bool = False => Do this program create a barchart of snp distribution for each
-        file ? (Number of gene that have AT LEAST n snp)
-        @param cumulative_heatmap : bool = False => Do this program create a heatmap of snp distribution for each
-        file ? (Number of gene that have AT LEAST n snp)
-        @param tsv : bool = False => Do values used for chart are saved in a flatfile (.tsv)
-        @param png : bool = False => Do created charts are saved as png
-        @param show : bool = False => Do created charts are saved are shown
-            @warning Each time a char is shown, the program stop. It will resume when the chart is closed.
-        @param svg : bool = True => Do created charts are saved as svg (vectorize image)
-        @param sort_names : bool = True => Do species are sorted in lexicographic order ?
+    @param name_column : str => Name of the column that contain a primary key e.g. GeneName, GeneID. If two line
+    have the same "primary key", the last one will be used.
+    @param snp_column : str => Name of the column that contain a count of snp e.g. NumberOfSnp
+    @param file_separator : str = "\t" => The separator used in all flat file considered.
+    @param simplified : bool = True =>  Do number of snp represented by 0 gene are deleted from the result
+    @param max_length : int = None => Maximum length of each graph. keep the nth first result. Should be greater or
+    equal to 1 otherwise, it would be ignored.
+    @param output_path : str = "output" => Where graphs are saved.
+    @param output_warning : bool = True => Ask confirmation when at least one file can be erased by this program.
+    @param job_name : str = None => A name for this execution. (This creates a separated folder in
+     @p output_path). Default = "unnamed"
+    @param global_heatmap : bool = True => Do a heatmap that is the combination of all cumulative_heatmap is created
+    @param quantitative_barchart : bool = False => Do this program create a barchart of snp distribution for each
+    file (Number of gene that have n snp)
+    @param cumulative_barchart : bool = False => Do this program create a barchart of snp distribution for each
+    file ? (Number of gene that have AT LEAST n snp)
+    @param cumulative_heatmap : bool = False => Do this program create a heatmap of snp distribution for each
+    file ? (Number of gene that have AT LEAST n snp)
+    @param tsv : bool = False => Do values used for chart are saved in a flatfile (.tsv)
+    @param png : bool = False => Do created charts are saved as png
+    @param show : bool = False => Do created charts are saved are shown
+        @warning Each time a char is shown, the program stop. It will resume when the chart is closed.
+    @param svg : bool = True => Do created charts are saved as svg (vectorize image)
+    @param sort_by_name : bool = True => Do species are sorted in lexicographic order ?
+    @param show_values : bool = False => Do values are wrote in heatmap cells.
 
-    Returns :
-        @return int => if greater than 0, an error occurred.
-
+    @return int => if greater than 0, an error occurred.
+    - 1 job stopped by user
+    - 2 no species found
     """
+    parameters = locals().copy()
 
-    # WARING: Non recursiv, pas de trie
+    # Set a default name for output_path
+    if job_name is None or len(job_name) == 0:
+        job_name = "job_name"
 
+    # Assure that max_length is None or greater or equal to 1
+    if max_length <= 0:
+        max_length = None
+
+    # Assure that at least one thing will be generated
+    if not (global_heatmap or quantitative_barchart or cumulative_barchart or cumulative_heatmap):
+        global_heatmap = True
+
+    #
     # ---- ---- Path Management ---- ---- #
     # Assure that @p output_path point to a folder
+    if output_path is None or output_path == "":
+        output_path = "output/"
+
     if output_path[-1] not in ("/", "\\"):
         output_path += "/"
+
+    # Create @p output_path if needed
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
 
     # Load files
     if path[-5:] == ".json":
@@ -615,10 +832,6 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
         list_of_files = os.listdir(file_path_prefix)
         path_translation = {}
-
-    # Create @p output_path if needed
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
 
     # Create file and directory path
     output_dir = output_path + "/" + job_name + "/"
@@ -648,7 +861,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     c_heat_png = f"{heatmap_prefix}" if png and global_heatmap else None
     c_heat_tsv = f"{heatmap_prefix}" if tsv and global_heatmap else None
     c_heat_svg = f"{heatmap_prefix}" if svg and global_heatmap else None
-    c_heat_show = show and global_heatmap
+    c_heat_show = show and cumulative_heatmap
 
     c_bar_png = f"{cumulative_prefix}" if png and cumulative_barchart else None
     c_bar_tsv = f"{cumulative_prefix}" if tsv and cumulative_barchart else None
@@ -660,11 +873,13 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     q_bar_svg = f"{quantitative_prefix}" if svg and quantitative_barchart else None
     q_bar_show = show and quantitative_barchart
 
+
+
     # ---- ---- Load files ---- ----
     all_snp = {}                        # {Number_of_snp, {File_name : Number_of_genes_with_this_number_of_snp}
     all_species = []                    # List all targeted files
 
-    # process all files and load snp into all_files
+    # process all files and load snp into all_species
     for files in list_of_files:
         files_dict = extract_data_from_table(f"{file_path_prefix}{files}", key=name_column, value=snp_column,
                                              filter_=greater_than_0_int_filter, separator=file_separator)
@@ -676,13 +891,18 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
         all_snp = compile_gene_snp(files_dict, all_snp, group=all_species[-1])
 
-    if sort_names:
+    if sort_by_name:
         all_species.sort()
 
     # ---- ---- Matrix and chart generation ---- ----
+    if not all_species:
+        print("Not enough species (" + str(len(all_species)) + ")")
+        return 2
+
     data, x_legend = make_data_matrix(all_snp, *all_species, simplified=simplified, max_length=max_length)
 
     if len(x_legend) == x_legend[-1]:
+        # Verify that x_legend is continue TODO:
         # if the legend is equivalent of the automatic one, we use the automatic legend
         # (e.g. when @p simplified is False or when there is no simplification),
         x_legend = None
@@ -693,7 +913,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
     for i in range(0, len(data)):
         line_name = all_species[i]
-
+        print(data[i])
         # Make quantitative barchart
         if quantitative_barchart:
             make_bar_char(data[i], x_legend=x_legend,
@@ -724,6 +944,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     # Heatmap generation
     if cumulative_heatmap:
         for i, lines in enumerate(data):
+
             make_heatmap([lines], y_legend=[""], x_legend=x_legend,
                          title=f"Number of genes with at least n SNP : {all_species[i]}",
                          xlabel="Number of snp",
@@ -732,7 +953,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                          png=f"{c_heat_png}_{all_species[i]}" if c_heat_png else None,
                          tsv=f"{c_heat_tsv}_{all_species[i]}" if c_heat_tsv else None,
                          svg=f"{c_heat_svg}_{all_species[i]}" if c_heat_svg else None,
-                        )
+                         contain_number=show_values)
 
     if global_heatmap:
         make_heatmap(data, y_legend=all_species, x_legend=x_legend,
@@ -743,49 +964,45 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                      png=heat_png + "_global" if heat_png else None,
                      tsv=heat_tsv + "_global" if heat_tsv else None,
                      svg=heat_svg + "_global" if heat_svg else None,
-                     )
+                     contain_number=show_values)
 
     return 0
 
 
 if __name__ == "__main__":
-    """try:
-        opts, args = getopt.getopt(sys.argv[1:],
-                                   "hdvi:r:",
-                                   ["help", "debug", "verbose", "input=", "reference="])
-    except getopt.GetoptError as err:
-        print(__help_message__)
-        sys.exit(2)
+    import sys
 
-    if not opts:
-        print(__help_message__)
-        sys.exit(2)
-    
-    path = None
-    
-    for o, a in opts:
-        if o in ("-h", "--help"):
-            print(__help_message__)
-            sys.exit()
-            
-        elif o in ("-i", "--input"):
-            folder_path = a
-            
-        elif o in ("-r", "--reference"):
-            ref_name = a
-            
-        else:
-            assert False, "unhandled option"
-    """
+    if not os.path.exists(path="data/"):
+        os.mkdir("data/")
 
+    if not os.path.exists(path="output/"):
+        os.mkdir("data/")
 
-    sys.exit(main("tests/data",
-                 "Contig_name", "BiAllelic_SNP", output_warning=False,
-                 max_length=20, tsv=True, cumulative_heatmap=True, cumulative_barchart=True, quantitative_barchart=True,
+    __getopts__ = {
+        "name_column=":             ("n:", None),
+        "snp_column=":              ("s:", None),
+        "path=":                    ("p:", ("TargetedFiles.json", str)),
+        "file_separator=":          ("f:", ("\t", str)),
+        "output_path=":             ("o:", ("output/", str)),
+        "job_name=":                ("j:", ("Unnamed", str)),
+        "max_length=":              ("m:", (20,      int)),
+        "help":                     ("h", None),
 
-                 job_name="Example"))
+        "output_warning":           ("w", (True, False)),
+        "sort_by_name":             ("r", (True, False)),
+        "simplified":               ("i", None),
+        "global_heatmap":           ("g", None),
+        "quantitative_barchart":    ("q", None),
+        "cumulative_barchart":      ("c", None),
+        "cumulative_heatmap":       ("u", None),
+        "tsv":                      ("t", None),
+        "png":                      ("k", None),
+        "show":                     ("d", None),
+        "svg":                      ("v", None),
+        "show_values":              ("e", None)
+    }
 
-    #TODO: Gettops
-    #TODO: complete main @brief
-    #TODO: complete file header
-    #TODO: Unitary test
+    main_params = auto_getopts(sys.argv[1:], __getopts__, "name_column", "snp_column", help_message="NON")
+    print(main_params)
+    exit_code = main(**main_params)
+    exit(exit_code)
