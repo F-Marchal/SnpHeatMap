@@ -609,7 +609,7 @@ def make_heatmap(data: list[list[int]],
                 # Format units
                 if data_units - 1 <= len(units):
                     if data_units == 0:
-                        pass
+                        str_data += "\n"
 
                     elif data_pos == 0:
                         str_data = f"{str_data[:3]}\n{units[data_units - 1]}"
@@ -621,7 +621,7 @@ def make_heatmap(data: list[list[int]],
                     raise ValueError("Too many snp : " + str(data[i][j]))
 
                 # Place text
-                plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color)
+                plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color, fontsize=8)
 
 
 
