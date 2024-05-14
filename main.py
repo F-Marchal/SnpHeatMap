@@ -1002,7 +1002,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     # process all files and load snp into all_species
     for files in list_of_files:
         if files[0] == ".":
-            pass
+            continue
 
         files_dict = extract_data_from_table(f"{file_path_prefix}{files}", key=name_column, value=snp_column,
                                              filter_=greater_than_0_int_filter, separator=file_separator)
