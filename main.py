@@ -46,7 +46,6 @@ try:
 except ModuleNotFoundError as E:
     print(f"Module not found : {E}\n"
           f"Open a terminal and try : "
-          f"\n\tpip install pillow"
           f"\n\tpip install matplotlib"
           f"\n\nIf pip is not found, you can install it using : "
           f"\nOn linux or MacOs: "
@@ -449,8 +448,6 @@ def _chart_export(data: list[list[int]], show: bool = False, png: str = None, ts
     # svg export (Scalable Vector Graphic )
     if svg is not None:
         plt.savefig(svg + ".svg", format='svg')
-        with open(svg + ".svg", "a") as flux:
-            flux.write("Bonsoir")
 
     # Export tsv (flat file)
     if tsv is not None:
