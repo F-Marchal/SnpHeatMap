@@ -3,10 +3,10 @@ The goal of this project is to create a number of chart
 related to snp (simple nucleotide polymorphism) analysis
 
 Those charts are : 
-- Quantitative bar chart (-q) : Show the number of gene (y) per number of snp (x)
-- Cumulative bar chart (-c): Show the number of gene (y) that have at least n snp (x)
-- Monoheatmap (-u): Cumulative bar chart but it's a heatmap
-- global heatmap (-g): concatenation of all Monoheatmap
+- [Quantitative chart](#quantitative-chart-) (-q) : Show the number of gene (y) per number of snp (x)
+- [Cumulative chart](#cumulative-chart-) (-c) : Show the number of gene (y) that have at least n snp (x)
+- [Cumulative chart](#cumulative-chart-) (-u) : Cumulative bar chart but it's a heatmap
+- [Global Heatmap](#global-heatmap-) (-g) : concatenation of all Cumulative chart
 
 ## Installation :
 - Download
@@ -156,3 +156,24 @@ Generate a svg for all generated charts.
 ##### --show_values -e
 Heatmap's cells contain theirs values.
 
+## Example chart
+Charts generated using `python3 Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -k -gqcu -w -j Examples`
+
+The data used in these graphs comes from a random generator
+
+### Quantitative chart :
+A barchart that show the proportion of gene that have a certain number of snp
+![Example Image](output/Examples/Examples_QuantitativeBarchart_Delta.png)
+
+### Cumulative chart :
+A barchart that show the proportion of gene that have at least certain number of snp
+![Example Image](output/Examples/Examples_CumulativeBarchart_Delta.png)
+
+### Cumulative Heatmap :
+A heatmap that show the proportion of gene that have at least certain number of snp (variation of Cumulative chart)
+![Example Image](output/Examples/Examples_Heatmap_Delta.png)
+
+
+### Global Heatmap :
+A heatmap that show the proportion of gene that have at least certain number of snp for all species.
+![Example Image](output/Examples/Examples_Heatmap_global.png)  

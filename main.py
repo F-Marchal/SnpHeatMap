@@ -460,6 +460,7 @@ def _chart_export(data: list[list[int]], show: bool = False, png: str = None, ts
 
 def make_bar_char(data: list[int],
                   x_legend: list = None, x_legend_is_int: bool = True, y_legend_is_int: bool = True,
+                  chart_name: str = None,
                   title: str = None, xlabel: str = None, ylabel: str = None,
                   show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                   erase_last_plt: bool = True):
@@ -471,6 +472,7 @@ def make_bar_char(data: list[int],
     @param x_legend : list = None => Values used to legend the x-axis.
     @param x_legend_is_int : bool = True => Do x-axis represent oly integer
     @param y_legend_is_int : bool = True => Do y-axis represent oly integer
+    @param chart_name : str = None => A name that will be used if tsv is not None to name a line.
     @param title : str = None => A title for this chart
     @param xlabel : str = None => A title for the x-axis
     @param ylabel : str = None => A title for the y-axis
@@ -510,7 +512,7 @@ def make_bar_char(data: list[int],
     plt.gcf().canvas.manager.set_window_title(title)
 
     # export chart
-    _chart_export(data=[data], x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
+    _chart_export(data=[data], x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg, y_legend=[chart_name])
 
 
 def make_heatmap(data: list[list[int]],
@@ -1039,7 +1041,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
         # Make quantitative barchart
         if quantitative_barchart:
-            make_bar_char(data[i], x_legend=x_legend,
+            make_bar_char(data[i], x_legend=x_legend, chart_name=line_name,
                           ylabel="Number of genes",
                           xlabel="Number of snp",
                           title=f"Number of snp per genes in {line_name}",
@@ -1055,7 +1057,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         # Make cumulative Barchart
         if cumulative_barchart:
             make_bar_char(data[i],
-                          show=c_bar_show, x_legend=x_legend,
+                          show=c_bar_show, x_legend=x_legend, chart_name=line_name,
                           ylabel="Number of genes",
                           xlabel="Number of snp",
                           title=f"Number of genes with at least n snp in {line_name}",
@@ -1068,7 +1070,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     if cumulative_heatmap:
         for i, lines in enumerate(data):
 
-            make_heatmap([lines], y_legend=[""], x_legend=x_legend,
+            make_heatmap([lines], y_legend=[all_species[i]], x_legend=x_legend,
                          title=f"Number of genes with at least n SNP : {all_species[i]}",
                          xlabel="Number of snp",
                          ylabel="Species names",
@@ -1109,7 +1111,6 @@ if __name__ == "__main__":
         print(E)
         print(__help_message__)
         exit(5)
-
 
     exit_code = main(**main_params)
     exit(exit_code)
