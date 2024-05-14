@@ -34,11 +34,27 @@ This module has been made in 2024 during an internship at the UMR Agap, GE2pop (
   - getopt
 
 """
+# Native libraries
 import os
 import json
-import matplotlib.pyplot as plt
 import getopt
-# from PIL import Image
+
+try:
+    import matplotlib.pyplot as plt
+    from PIL import Image
+
+except ModuleNotFoundError as E:
+    print(f"Module not found : {E}\n"
+          f"Open a terminal and try : "
+          f"\n\tpip install pillow"
+          f"\n\tpip install matplotlib"
+          f"\n\nIf pip is not found, you can install it using : "
+          f"\nOn linux or MacOs: "
+          f"\n\tpython -m ensurepip --upgrade"
+          f"\nOn Windows : "
+          f"\n\tpy -m ensurepip --upgrade"
+          )
+    exit(6)
 
 __author__ = "Marchal Florent"
 __credits__ = ["Florent Marchal", "Vetea Jacot", "Concetta Burgarella", "Vincent Ranwez", "Nathalie Chantret"]
@@ -72,11 +88,15 @@ __getopts__ = {
     "svg":                      ("v", None),
     "show_values":              ("e", None)
 }
+
 __help_message__ = ("python3 main.py [Gene name Column] [Snp column] [Path to your files] [Options]"
                     f"\nOptions are : "
-                    f"\n{'\t'.join([f'{short_key} / {key}, ' for key, (short_key, _) in __getopts__.items()])}"
+                    f"\n{'\t'.join([      f'{short_key} / {key}, ' if short_key[-1] != ":" 
+                                    else f'{short_key[:-1]} / {key}, ' for key, (short_key, _) in __getopts__.items()
+                                    ]
+                                   )}"
                     f"\nSee README.md for more details")
-print(__help_message__)
+
 def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
     """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
     @param legend : Names all the line's columns. Example: ["A", "B", "C"]
@@ -750,7 +770,6 @@ def auto_getopts(argv: list[str], getopts_options: dict[None or str, None or tup
             selected_default = _auto_getopts_complex_value
             default_args = (value_restriction, None, True)
 
-
         elif short_keys[-1] != ":" and long_keys[-1] != "=":
             # Keys with two values
             if value_restriction is None:
@@ -805,7 +824,7 @@ def auto_getopts(argv: list[str], getopts_options: dict[None or str, None or tup
 
     except getopt.GetoptError as E:
         print(__help_message__)
-        raise E
+        raise E.msg
 
     for option, value in opts:
 
@@ -1019,7 +1038,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
     for i in range(0, len(data)):
         line_name = all_species[i]
-        print(data[i])
+
         # Make quantitative barchart
         if quantitative_barchart:
             make_bar_char(data[i], x_legend=x_legend,
@@ -1082,9 +1101,17 @@ if __name__ == "__main__":
         os.mkdir("data/")
 
     if not os.path.exists(path="output/"):
-        os.mkdir("data/")
+        os.mkdir("output/")
 
-    main_params = auto_getopts(sys.argv[1:], __getopts__, "name_column", "snp_column", help_message="NON")
-    print(main_params)
+    try:
+        main_params = auto_getopts(sys.argv[1:], __getopts__, "name_column", "snp_column",
+                                   help_message=__help_message__)
+    except Exception as E:
+        print("An error occurred :\n")
+        print(E)
+        print(__help_message__)
+        exit(5)
+
+
     exit_code = main(**main_params)
     exit(exit_code)

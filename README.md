@@ -39,10 +39,15 @@ Please read [File format](#file-format-) before using main.py and [Path to your 
 
 ### Quick usage :
 - Put your files inside the `data` folder
-- run `python3 main.py [Gene name Column] [Snp column]`
-
+- Open a terminal in this folder or use `cd` to change terminal's current directory
+- In Linux :
+  - run `python3 main.py [Gene name Column] [Snp column]`
+- If you use windows :
+  - run `python3 main.py [Gene name Column] [Snp column]`
+  
 ### Complete usage :
-`python3 main.py [Gene name Column] [Snp column] [Path to your files] [Options]`
+- linux : `python3 main.py [Gene name Column] [Snp column] [Path to your files] [Options]`
+- Windows : `python3 main.py [Gene name Column] [Snp column] [Path to your files] [Options]`
 This command will make a "global heatmap" for all your files in data
 #### Arguments
 - **Warning:** Arguments should always be before the parameters
