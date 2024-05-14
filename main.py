@@ -85,7 +85,7 @@ __getopts__ = {
     "png":                      ("k", None),
     "show":                     ("d", None),
     "svg":                      ("v", None),
-    "show_values":              ("e", None)
+    "show_values=":             ("e:", (None, int))
 }
 
 __help_message__ = ("python3 main.py [Gene name Column] [Snp column] [Path to your files] [Options]"
@@ -333,7 +333,7 @@ def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed
     @brief Take a list of number and sum all values.
     @code
     [0, 5, 6, 1] => [0+5+6+1, 5+6+1, 6+1, 1] == [12, 12, 7, 1]
-    @encode
+    @endcode
 
     @param list_of_numbers : list[int] or list[float] => A list that contain numbers.
     @param reversed_ = False => Do the accumulation start at the end and end at the beginning.
@@ -519,7 +519,7 @@ def make_heatmap(data: list[list[int]],
                  x_legend: list = None, y_legend: list = None,
                  title: str = None, xlabel: str = None, ylabel: str = None,
                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
-                 erase_last_plt: bool = True, contain_number: bool = True,
+                 erase_last_plt: bool = True, contain_number: int = None,
                  test_color: str = "#a0a0a0", cmap: str = "jet",
                 ):
     """!
@@ -537,7 +537,8 @@ def make_heatmap(data: list[list[int]],
     @param tsv : str = None => Give a path to export @p data into a tsv.
     @param svg : str = None => Give a path to export the current plot as svg
     @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot memory
-    @param contain_number : bool = True => If True, all cells will contain theirs values.
+    @param contain_number : int = None => If greater or equal to 0, all cells will contain theirs values. if lower than 0,
+    text in cell in automatically determined. If None, nothing happen.
     @param test_color : str = #a0a0a0 => HTML color code for text inside cells
         @note Only when contain_number is True
     @param cmap : str = jet => Color mod. supported values are 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG',
@@ -571,7 +572,9 @@ def make_heatmap(data: list[list[int]],
     num_cols = len(data[0])
 
     # Create heatmap
-    plt.figure(figsize=(num_cols + 1, max(num_rows + 1, 4)))
+    fig_size = (num_cols + 1, max(num_rows + 1, 4))
+
+    plt.figure(figsize=fig_size)
     plt.imshow(data, cmap=cmap, interpolation='nearest', vmin=1)
 
     # Add ticks
@@ -594,10 +597,16 @@ def make_heatmap(data: list[list[int]],
     # Add color bar
     cbar = plt.colorbar()
     cbar.set_label('Number of genes')
-
-    if contain_number:
+    plt.gca().set_aspect('equal', adjustable='box')
+    if contain_number is not None:
         # Add text labels inside heatmap cells
         units = ['', 'k', 'M', 'G', 'T', 'P']
+
+        if contain_number < 0:
+            font_size = min(12, min(fig_size) * 12)
+        else:
+            font_size = contain_number
+
         for i in range(len(data)):
             for j in range(len(data[0])):
                 # pretreatment
@@ -613,7 +622,8 @@ def make_heatmap(data: list[list[int]],
 
                     elif data_pos == 0:
                         str_data = f"{str_data[:3]}\n{units[data_units - 1]}"
-
+                        # print(str_data, data[i][j])
+                        # TODO: ROUND instead of TRUNC
                     else:
                         str_data = f"{str_data[:data_pos]},{str_data[data_pos: 3]}\n{units[data_units]}"
 
@@ -621,7 +631,7 @@ def make_heatmap(data: list[list[int]],
                     raise ValueError("Too many snp : " + str(data[i][j]))
 
                 # Place text
-                plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color, fontsize=8)
+                plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color, fontsize=font_size)
 
 
 
@@ -700,7 +710,7 @@ def auto_getopts(argv: list[str], getopts_options: dict[None or str, None or tup
         "Gamma":                ("g", ("data/", str)),
         "Delta=":               ("d:", (0, lambda integer : int(integer) - 1)),
     }
-    @encode
+    @endcode
 
     @param getopts_options : dict[str,None or tuple[any, any]] => dictionary that contain.
     This dict should have the following format : {complete_name: (shorten_name, (default_value, value_restriction) ) }
@@ -720,12 +730,12 @@ def auto_getopts(argv: list[str], getopts_options: dict[None or str, None or tup
     Example :
     @code
     getopts_options = {
-        "Alpha=":               ("a:", None),           # A
-        "Beta":                 (None, None),           # B
-        "Gamma":                ("g", ("data/", str)),  # C
-        "Delta=":               ("d:", (0, lambda integer : int(integer) - 1)),    # D
+        "Alpha=":               ("a:", None),
+        "Beta":                 (None, None),
+        "Gamma":                ("g", ("data/", str)),
+        "Delta=":               ("d:", (0, lambda integer : int(integer) - 1)),
     }
-    @encode
+    @endcode
 
     @param *mandatory : str => A list of option / argument that should be used at each time (e.g. file path in cut
     command)
@@ -869,7 +879,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
          cumulative_heatmap: bool = False,
          tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
          sort_by_name: bool = True,
-         show_values: bool = False) -> int:
+         show_values: int = -1) -> int:
     """!
     @brief Create a number of chart related to snp analysis.
 
@@ -907,7 +917,9 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         @warning Each time a char is shown, the program stop. It will resume when the chart is closed.
     @param svg : bool = True => Do created charts are saved as svg (vectorize image)
     @param sort_by_name : bool = True => Do species are sorted in lexicographic order ?
-    @param show_values : bool = False => Do values are wrote in heatmap cells.
+    @param show_values : int = None => If greater or equal to 0, all cells will contain theirs values. if lower than 0,
+    text in cell in automatically determined (can be ugly when show is True, but assure that the text is good in
+    png and svg). If None, nothing happen.
 
     @return int => if greater than 0, an error occurred.
     - 1 job stopped by user
@@ -922,6 +934,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     # Assure that max_length is None or greater or equal to 1
     if max_length <= 0:
         max_length = None
+    if show_values <= 0:
+        show_values = -1
 
     # Assure that at least one thing will be generated
     if not (global_heatmap or quantitative_barchart or cumulative_barchart or cumulative_heatmap):

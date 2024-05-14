@@ -154,7 +154,12 @@ Show all generated charts during the execution. EACH CHARTS WILL STOP THE EXECUT
 Generate a svg for all generated charts.
 
 ##### --show_values -e
-Heatmap's cells contain theirs values.
+An integer (positive or negative)
+
+If greater or equal to 0, all heatmap's cells will contain theirs values. if lower than 0,
+text size in cell is automatically determined 
+(can be ugly in the windows displayed by -d, but assure that the text is well sized in 
+png and svg). If unspecified, cells are empty.
 
 ## Example chart
 Charts generated using `python3 Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -k -gqcu -w -j Examples`
