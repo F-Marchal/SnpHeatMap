@@ -10,13 +10,13 @@ Those charts are :
 
 ## Installation :
 - Download
-  1) Download Repository ("<> Code" button top right --> "Download zip")
-  2) Unzip the Downloaded files
+  1. Download Repository ("<> Code" button top right --> "Download zip")
+  2. Unzip the Downloaded files
 
 
 - Using linux terminal
-  1) `git clone https://github.com/F-Marchal/SnpHeatMap.git`
-  2) `cd SnpHeatMap`
+  1. `git clone https://github.com/F-Marchal/SnpHeatMap.git`
+  2. `cd SnpHeatMap`
 
 see [Quick usage](#quick-usage-) and [Quick usage](#complete-usage-) in order to run main.py
 
