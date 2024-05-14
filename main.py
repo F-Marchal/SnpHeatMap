@@ -995,14 +995,15 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     q_bar_svg = f"{quantitative_prefix}" if svg and quantitative_barchart else None
     q_bar_show = show and quantitative_barchart
 
-
-
     # ---- ---- Load files ---- ----
     all_snp = {}                        # {Number_of_snp, {File_name : Number_of_genes_with_this_number_of_snp}
     all_species = []                    # List all targeted files
 
     # process all files and load snp into all_species
     for files in list_of_files:
+        if files[0] == ".":
+            pass
+
         files_dict = extract_data_from_table(f"{file_path_prefix}{files}", key=name_column, value=snp_column,
                                              filter_=greater_than_0_int_filter, separator=file_separator)
 
