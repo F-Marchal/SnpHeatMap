@@ -1,25 +1,82 @@
-"""! @brief -
- @file main.py
- @section libs Librairies/Modules
-  - os (link)
-  - json (link)
-  - matplotlib.pyplot (link)
-  - sys (link)
-  - getopt (link)
+"""!
+@file main.py
+@brief
+Create a number of chart related to snp (simple nucleotide polymorphism) analysis
 
- @section authors Author(s)
-  - Created by Florent Marchal on 07/05/2024 .
+@subsection How to use this file
+Python3 [Column that contain gene's names] [Column tha contain the number of snp] [path to a folder
+that contain your files] [options]
+
+Se @ref main.__help_message__ for information
+
+@subsection chart Charts
+    - Quantitative bar chart (-q) : Show the number of gene (y) per number of snp (x)
+    - Cumulative bar chart (-c): Show the number of gene (y) that have at least n snp (x)
+    - Monoheatmap (-u): Cumulative bar chart but it's a heatmap
+    - global heatmap (-g): concatenation of all Monoheatmap
+
+@subsection format Formats
+    - as tsv (-t)
+    - as png (-k)
+    - as svg (-b)
+    - as a pop-up (-d)
+
+
+@section authors Author(s)
+  - Created by Marchal Florent on 06/05/2024.
+This module has been made in 2024 during an internship at the UMR Agap, GE2pop (France, Montpellier)
+
+@section libs Librairies/Modules
+  - os
+  - json
+  - matplotlib.pyplot
+  - sys
+  - getopt
+
 """
-__help_message__ = __doc__
 import os
 import json
 import matplotlib.pyplot as plt
 import getopt
 # from PIL import Image
 
+__author__ = "Marchal Florent"
+__credits__ = ["Florent Marchal", "Vetea Jacot", "Concetta Burgarella", "Vincent Ranwez", "Nathalie Chantret"]
 
 
+# List of arguments used to start this program with Their shorten name, (default value and type)
+__getopts__ = {
+    # long name:                (shorten_name, (default_value, type))
+    #                                           None = (None, str)
+    "name_column=":             ("n:", None),
+    "snp_column=":              ("s:", None),
+    "path=":                    ("p:", ("TargetedFiles.json", str)),
+    "file_separator=":          ("f:", ("\t", str)),
+    "output_path=":             ("o:", ("output/", str)),
+    "job_name=":                ("j:", ("Unnamed", str)),
+    "max_length=":              ("m:", (20, int)),
+    "help":                     ("h", None),
 
+    # long name:                (shorten_name, (inactive value, active value))
+    #                                           None = (True, False)
+    "output_warning":           ("w", (True, False)),
+    "sort_by_name":             ("r", (True, False)),
+    "simplified":               ("i", None),
+    "global_heatmap":           ("g", None),
+    "quantitative_barchart":    ("q", None),
+    "cumulative_barchart":      ("c", None),
+    "cumulative_heatmap":       ("u", None),
+    "tsv":                      ("t", None),
+    "png":                      ("k", None),
+    "show":                     ("d", None),
+    "svg":                      ("v", None),
+    "show_values":              ("e", None)
+}
+__help_message__ = ("python3 main.py [Gene name Column] [Snp column] [Path to your files] [Options]"
+                    f"\nOptions are : "
+                    f"\n{'\t'.join([f'{short_key} / {key}, ' for key, (short_key, _) in __getopts__.items()])}"
+                    f"\nSee README.md for more details")
+print(__help_message__)
 def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
     """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
     @param legend : Names all the line's columns. Example: ["A", "B", "C"]
@@ -374,7 +431,6 @@ def _chart_export(data: list[list[int]], show: bool = False, png: str = None, ts
         plt.savefig(svg + ".svg", format='svg')
         with open(svg + ".svg", "a") as flux:
             flux.write("Bonsoir")
-            print("la")
 
     # Export tsv (flat file)
     if tsv is not None:
@@ -503,7 +559,7 @@ def make_heatmap(data: list[list[int]],
     if x_legend:
         plt.xticks(range(1, num_cols+1), x_legend)
     else:
-        x_legend = list(range(1, num_cols + 1))
+        x_legend = [str(i) for i in range(1, num_cols + 1)]
         plt.xticks(range(num_cols), x_legend)
 
     if y_legend:
@@ -607,7 +663,61 @@ def _auto_getopts_complex_value(value_restriction, value, use_default=False) -> 
         return value_restriction[1](value)
 
 
-def auto_getopts(argv: list[str], getopts_options, *mandatory, help_message: str = None, force_default=True) -> dict:
+def auto_getopts(argv: list[str], getopts_options: dict[None or str, None or tuple[any, any]],
+                 *mandatory: str, help_message: str = None, force_default=True) -> dict:
+    """!
+    @brief Use @ref getopt.getopt to generate a dictionary for a function. All items can have default values and
+    returned values can be trans typed (or passed inside a function)
+
+    @param argv : list[str] => List of argument (strings). Usually sys.argv[1:].
+    @note If the first values are not known option (option in @p getopts_options), the function will consider that
+    those values correspond to the nth first option that require an argument in @p getopts_options.
+    In below example, you can give two arguments. The first will be matched with "Alpha" and the last with "Beta".
+    @code
+    argv = ["5", "6"]
+    getopts_options = {
+        "Alpha=":               ("a:", None),
+        "Beta=:                 ('b', (0, int)),
+        "Gamma":                ("g", ("data/", str)),
+        "Delta=":               ("d:", (0, lambda integer : int(integer) - 1)),
+    }
+    @encode
+
+    @param getopts_options : dict[str,None or tuple[any, any]] => dictionary that contain.
+    This dict should have the following format : {complete_name: (shorten_name, (default_value, value_restriction) ) }
+        - complete_name : Option called using --Complete_name. It's this name that is used to fill the returned dict.
+        - shorten_name : Option called using -s.
+        @note If an option require an argument, complete_name should end by an '=' AND shorten_name should end by a ':'.
+        - (default_value, value_restriction):
+            - Option that does not require an argument :
+                - When None : None is replaced by (True, False)
+                - default_value : The value used when this option is not used.
+                - value_restriction : The value used when this option is used.
+
+            - Option that require an argument :
+                - None : Only for options in @p mandatory
+                - default_value : The value used when this option is not used. (can be a callable)
+                - value_restriction : None or a callable. Use it to turn your value in other type e.g. : int
+    Example :
+    @code
+    getopts_options = {
+        "Alpha=":               ("a:", None),           # A
+        "Beta":                 (None, None),           # B
+        "Gamma":                ("g", ("data/", str)),  # C
+        "Delta=":               ("d:", (0, lambda integer : int(integer) - 1)),    # D
+    }
+    @encode
+
+    @param *mandatory : str => A list of option / argument that should be used at each time (e.g. file path in cut
+    command)
+    @param help_message : str = None => A message that will be displayed if the arguments are incorrect or if
+    --help is used (any short key can be attributed to --help)
+    @param force_default = True => All unspecified values are filled with theirs default value (see @p getopts_options)
+
+    @note if a parameter is named "help" and that @p help_message is True,
+    @return dict => list of parameter xtract from @p argv
+
+    """
 
     option_dict = {}            # Will store options
 
@@ -632,41 +742,23 @@ def auto_getopts(argv: list[str], getopts_options, *mandatory, help_message: str
 
         # Associate short_keys and long_keys with theirs filters
         if short_keys[-1] == ":" and long_keys[-1] == "=":
-            # Keys with multiple values
-
             # Remove ":" and "="
             long_keys = long_keys[:-1]
             short_keys = short_keys[:-1]
 
-            if "--" + long_keys in simple_keys or "--" +long_keys in complexe_keys:
-                raise KeyError(f"{long_keys} long key is repeated.")
+            selected_dict = complexe_keys
+            selected_default = _auto_getopts_complex_value
+            default_args = (value_restriction, None, True)
 
-            if  "-" + short_keys in simple_keys or "-" + short_keys in complexe_keys:
-                raise KeyError(f"{short_keys} long key is repeated.")
-
-            # Save options
-            complexe_keys["--" + long_keys] = (value_restriction, long_keys)
-            complexe_keys["-" + short_keys] = (value_restriction, long_keys)
-
-            if force_default:
-                option_dict[long_keys] = _auto_getopts_complex_value(value_restriction, None, use_default=True)
 
         elif short_keys[-1] != ":" and long_keys[-1] != "=":
             # Keys with two values
             if value_restriction is None:
                 value_restriction = (False, True)
 
-            if "--" + long_keys in simple_keys or "--" + long_keys in complexe_keys:
-                raise KeyError(f"{long_keys} long key is repeated.")
-
-            if "-" + short_keys in simple_keys or "-" + short_keys in complexe_keys:
-                raise KeyError(f"{short_keys} long key is repeated.")
-
-            simple_keys["--" + long_keys] = (value_restriction, long_keys)
-            simple_keys["-" + short_keys] = (value_restriction, long_keys)
-
-            if force_default:
-                option_dict[long_keys] = _auto_getopts_simple_value(value_restriction, use_default=True)
+            selected_dict = simple_keys
+            selected_default = _auto_getopts_simple_value
+            default_args = (value_restriction, True)
 
         # Verify short and long keys have no conflictual behaviors.
         else:
@@ -677,6 +769,20 @@ def auto_getopts(argv: list[str], getopts_options, *mandatory, help_message: str
                 error_message = f"long key ('{long_keys}') do not asks for a value but short key do ('{short_keys}')."
 
             raise ValueError(f"Error in parameters definitions : " + error_message)
+
+        # Do those keys already exists ?
+        if "--" + long_keys in simple_keys or "--" + long_keys in complexe_keys:
+            raise KeyError(f"{long_keys} long key is repeated.")
+
+        if "-" + short_keys in simple_keys or "-" + short_keys in complexe_keys:
+            raise KeyError(f"{short_keys} long key is repeated.")
+
+        # Save options
+        selected_dict["--" + long_keys] = (value_restriction, long_keys)
+        selected_dict["-" + short_keys] = (value_restriction, long_keys)
+
+        if force_default:
+            option_dict[long_keys] = selected_default(*default_args)
 
     try:
         opts, unparsed = getopt.getopt(argv, short_opt, long_opt)
@@ -977,30 +1083,6 @@ if __name__ == "__main__":
 
     if not os.path.exists(path="output/"):
         os.mkdir("data/")
-
-    __getopts__ = {
-        "name_column=":             ("n:", None),
-        "snp_column=":              ("s:", None),
-        "path=":                    ("p:", ("TargetedFiles.json", str)),
-        "file_separator=":          ("f:", ("\t", str)),
-        "output_path=":             ("o:", ("output/", str)),
-        "job_name=":                ("j:", ("Unnamed", str)),
-        "max_length=":              ("m:", (20,      int)),
-        "help":                     ("h", None),
-
-        "output_warning":           ("w", (True, False)),
-        "sort_by_name":             ("r", (True, False)),
-        "simplified":               ("i", None),
-        "global_heatmap":           ("g", None),
-        "quantitative_barchart":    ("q", None),
-        "cumulative_barchart":      ("c", None),
-        "cumulative_heatmap":       ("u", None),
-        "tsv":                      ("t", None),
-        "png":                      ("k", None),
-        "show":                     ("d", None),
-        "svg":                      ("v", None),
-        "show_values":              ("e", None)
-    }
 
     main_params = auto_getopts(sys.argv[1:], __getopts__, "name_column", "snp_column", help_message="NON")
     print(main_params)
