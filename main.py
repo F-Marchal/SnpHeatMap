@@ -63,14 +63,18 @@ __credits__ = ["Florent Marchal", "Vetea Jacot", "Concetta Burgarella", "Vincent
 __getopts__ = {
     # long name:                (shorten_name, (default_value, type))
     #                                           None = (None, str)
+
+    # Arguments:
     "name_column=":             ("n:", None),
     "snp_column=":              ("s:", None),
-    "path=":                    ("p:", ("TargetedFiles.json", str)),
+    "path=":                    ("p:", ("data", str)),
+
+    # Parameters :
+    "help": ("h", None),
     "file_separator=":          ("f:", ("\t", str)),
     "output_path=":             ("o:", ("output/", str)),
     "job_name=":                ("j:", ("Unnamed", str)),
     "max_length=":              ("m:", (20, int)),
-    "help":                     ("h", None),
 
     # long name:                (shorten_name, (inactive value, active value))
     #                                           None = (True, False)
@@ -167,8 +171,10 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
 
             # Researched keys and values should be contained inside the legend.
             if key not in legend or value not in legend:
-                raise ValueError(f"Both key ('{key}') and value {value} should be contained inside the legend : {legend}")
+                raise ValueError(f"Both key ('{key}') and value('{value}') should be contained inside the legend : {legend}")
 
+            if legend[-1][-1] == "\n":
+                legend[-1] = legend[-1][:-1]
             continue
 
         # Parse the line
@@ -942,8 +948,10 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     # Assure that at least one thing will be generated
     if not (global_heatmap or quantitative_barchart or cumulative_barchart or cumulative_heatmap):
         global_heatmap = True
+    # Assure that at least one thing will be generated
+    if not (tsv or svg or png or show):
+        png = True
 
-    #
     # ---- ---- Path Management ---- ---- #
     # Assure that @p output_path point to a folder
     if output_path is None or output_path == "":
@@ -998,9 +1006,9 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     heat_svg = f"{heatmap_prefix}" if svg and global_heatmap else None
     heat_show = show and global_heatmap
 
-    c_heat_png = f"{heatmap_prefix}" if png and global_heatmap else None
-    c_heat_tsv = f"{heatmap_prefix}" if tsv and global_heatmap else None
-    c_heat_svg = f"{heatmap_prefix}" if svg and global_heatmap else None
+    c_heat_png = f"{heatmap_prefix}" if png and cumulative_heatmap else None
+    c_heat_tsv = f"{heatmap_prefix}" if tsv and cumulative_heatmap else None
+    c_heat_svg = f"{heatmap_prefix}" if svg and cumulative_heatmap else None
     c_heat_show = show and cumulative_heatmap
 
     c_bar_png = f"{cumulative_prefix}" if png and cumulative_barchart else None
@@ -1037,7 +1045,6 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
     # ---- ---- Matrix and chart generation ---- ----
     if not all_species:
-        print("Not enough species (" + str(len(all_species)) + ")")
         return 2
 
     data, x_legend = make_data_matrix(all_snp, *all_species, simplified=simplified, max_length=max_length)
@@ -1110,25 +1117,51 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     return 0
 
 
-if __name__ == "__main__":
-    import sys
+def main_using_getopts(argv: list[str] or str):
+    """@brief start @ref main.main using a string or sys.argv[1:]
+    Example :
+        - main_using_getopts(sys.argv[1:])
+        - main_using_getopts("name_column snp_column tests/TargetedFiles.json -m 20 -gv -w -j Tests -e -1")
 
+    @param argv : list[str] or str => List of argument (strings). Usually sys.argv[1:].
+    @note If the first values are not known option (option in @p getopts_options), the function will consider that
+    those values correspond to the nth first option that require an argument in @p getopts_options.
+    In below example, you can give two arguments. The first will be matched with "Alpha" and the last with "Beta".
+     @code
+    argv = ["5", "6"]
+    getopts_options = {
+        "Alpha=":               ("a:", None),
+        "Beta=:                 ('b', (0, int)),
+        "Gamma":                ("g", ("data/", str)),
+        "Delta=":               ("d:", (0, lambda integer : int(integer) - 1)),
+    }
+    @endcode
+    @return int => exit code
+    """
 
-
-    if not os.path.exists(path="data/"):
-        os.mkdir("data/")
-
-    if not os.path.exists(path="output/"):
-        os.mkdir("output/")
+    if isinstance(argv, str):
+        argv = argv.split(" ")
 
     try:
-        main_params = auto_getopts(sys.argv[1:], __getopts__, "name_column", "snp_column",
+        main_params = auto_getopts(argv, __getopts__, "name_column", "snp_column",
                                    help_message=help_usage())
+
     except Exception as E:
         print("An error occurred :\n")
         print(E)
         print(help_usage())
-        exit(5)
+        return 5
 
     exit_code = main(**main_params)
-    exit(exit_code)
+    if exit_code == 2:
+        print("Not enough species.")
+
+    return exit_code
+
+
+if __name__ == "__main__":
+    import sys
+    exit(main_using_getopts(sys.argv[1:]))
+
+
+
