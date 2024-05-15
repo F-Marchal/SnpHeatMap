@@ -7,7 +7,7 @@ Create a number of chart related to snp (simple nucleotide polymorphism) analysi
 Python3 [Column that contain gene's names] [Column tha contain the number of snp] [path to a folder
 that contain your files] [options]
 
-Se @ref main.__help_message__ for information
+See string returned by @ref main.help_usage() for information
 
 @subsection chart Charts
     - Quantitative bar chart (-q) : Show the number of gene (y) per number of snp (x)
@@ -88,13 +88,16 @@ __getopts__ = {
     "show_values=":             ("e:", (None, int))
 }
 
-__help_message__ = ("python3 main.py [Gene name Column] [Snp column] [Path to your files] [Options]"
-                    f"\nOptions are : "
-                    f"\n{'\t'.join([      f'{short_key} / {key}, ' if short_key[-1] != ":" 
-                                    else f'{short_key[:-1]} / {key}, ' for key, (short_key, _) in __getopts__.items()
-                                    ]
-                                   )}"
-                    f"\nSee README.md for more details")
+
+def help_usage():
+    return ("python3 main.py [Gene name Column] [Snp column] [Path to your files] [Options]"
+            f"\nOptions are : "
+            f"\n{'\t'.join([      f'{short_key} / {key}, ' if short_key[-1] != ":" 
+                            else f'{short_key[:-1]} / {key}, ' for key, (short_key, _) in __getopts__.items()
+                            ]
+                           )}"
+            f"\nSee README.md for more details")
+
 
 def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
     """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
@@ -615,15 +618,20 @@ def make_heatmap(data: list[list[int]],
                 data_pos = data_length % 3
                 data_units = data_length // 3
 
+                # Round data at 3 significant numbers
+                round_pos = max(data_length - 3, 0)
+                round_pos *= -1
+                str_data = str(round(data[i][j], round_pos))
+
                 # Format units
                 if data_units - 1 <= len(units):
+                    # No unit
                     if data_units == 0:
-                        str_data += "\n"
+                        str_data += "\n"    # Uniform text with other data
 
                     elif data_pos == 0:
                         str_data = f"{str_data[:3]}\n{units[data_units - 1]}"
-                        # print(str_data, data[i][j])
-                        # TODO: ROUND instead of TRUNC
+
                     else:
                         str_data = f"{str_data[:data_pos]},{str_data[data_pos: 3]}\n{units[data_units]}"
 
@@ -632,8 +640,6 @@ def make_heatmap(data: list[list[int]],
 
                 # Place text
                 plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color, fontsize=font_size)
-
-
 
     _chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
 
@@ -831,9 +837,8 @@ def auto_getopts(argv: list[str], getopts_options: dict[None or str, None or tup
             raise KeyError(f"Can not understand all options : {' '.join(unparsed)} "
                            f"Understood :  {opts}")
 
-    except getopt.GetoptError as E:
-        print(__help_message__)
-        raise E.msg
+    except getopt.GetoptError as GetE:
+        raise GetE
 
     for option, value in opts:
 
@@ -855,9 +860,6 @@ def auto_getopts(argv: list[str], getopts_options: dict[None or str, None or tup
             option_dict[option_name] = _auto_getopts_complex_value(value_restriction, value)
 
         else:
-            if help_message:
-                print(help_message)
-
             raise KeyError("Unknown option, can not proceed : " + option)
 
         if option_name in mandatory:
@@ -1111,6 +1113,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 if __name__ == "__main__":
     import sys
 
+
+
     if not os.path.exists(path="data/"):
         os.mkdir("data/")
 
@@ -1119,11 +1123,11 @@ if __name__ == "__main__":
 
     try:
         main_params = auto_getopts(sys.argv[1:], __getopts__, "name_column", "snp_column",
-                                   help_message=__help_message__)
+                                   help_message=help_usage())
     except Exception as E:
         print("An error occurred :\n")
         print(E)
-        print(__help_message__)
+        print(help_usage())
         exit(5)
 
     exit_code = main(**main_params)
