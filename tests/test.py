@@ -18,9 +18,21 @@ def equal_checksums(path1, path2, algorithm="sha256"):
     checksum2 = calculate_checksum(path2, algorithm)
     return checksum1 == checksum2
 
+
 def tsv_test(name: str, command: str):
     main.main_using_getopts(command + f" -j {name}")
     return compare_results(f"testOutput/{name}/", f"expectedResults/{name}/")
+
+
+def replace_by_parent_path_wen_needed(path: str, parent: str, sep: str = "/", use_path_as_prefix: bool = True) -> str:
+    parent = parent.replace("\\", "/")
+    if path[:2] == "./":
+        start = -2 if use_path_as_prefix else 0
+        return "/".join(parent.split("/")[start:-1]) + sep + path[2:]
+    elif path[:3] == "../":
+        start = -3 if use_path_as_prefix else 0
+        return "/".join(parent.split("/")[start:-2]) + sep + path[2:]
+    return path
 
 
 def compare_results(result: str, expected: str):
@@ -29,7 +41,6 @@ def compare_results(result: str, expected: str):
 
     if expected[-1] not in ("/", "\\"):
         expected += "/"
-    expected = expected.replace("\\", "/")
 
     if not os.path.exists(expected + ".test.json"):
         raise FileNotFoundError(f"Can not start a test in {expected}. Can not find .test.json")
@@ -38,11 +49,8 @@ def compare_results(result: str, expected: str):
         expected_results = json.load(json_flux)
 
         for path, value in expected_results.copy().items():
-            if path[:2] == "./":
-                n_path = expected.split("/")[-2] + "_" + path[2:]
-
-            else:
-                continue
+            n_path = replace_by_parent_path_wen_needed(path, expected, "_", use_path_as_prefix=True)
+            value = replace_by_parent_path_wen_needed(value, expected, "/", use_path_as_prefix=False)
 
             del expected_results[path]
             expected_results[n_path] = value
@@ -54,18 +62,11 @@ def compare_results(result: str, expected: str):
             "Nonequivalent": set()}
 
     for files in result_list:
-
         if files not in expected_results:
             logs["Unexpected_files"].add(files)
             continue
 
-        expected_file_path = expected_results[files]
-        if expected_file_path[:2] == "./":
-            expected_file_path = "/".join(expected.split("/")[:-1]) + "/" + expected_file_path[2:]
-        elif expected_file_path[:3] == "../":
-            expected_file_path = "/".join(expected.split("/")[:-2]) + "/" + expected_file_path[2:]
-
-        if not equal_checksums(expected_file_path, result + files):
+        if not equal_checksums(expected_results[files], result + files):
             logs["Nonequivalent"].add(files)
 
     return logs
@@ -102,7 +103,6 @@ def main_test():
         json.dump(final_logs, json_file, indent=4)
         print(final_logs)
 
-    print(final_logs)
     return final_logs
 
 
