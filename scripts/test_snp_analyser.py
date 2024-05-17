@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # encoding=utf-8
 """! @brief Script to use in order to test "snp_analyser" functionalities.
- @file tests.py
+ @file test_snp_analyser.py
  @section libs Libraries / Modules
   - snp_analyser
   - pytest

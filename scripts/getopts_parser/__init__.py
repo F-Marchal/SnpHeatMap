@@ -10,7 +10,7 @@ which specifies options short and long names, their aliases and their type and t
     - getopts : The main function. Handles error.
     - getopts_parser : Same as getopts but without any error handling
 
-- @ref tests.py: Provides a number of test function to verify the correct functioning the getopts_parser.py.
+- @ref test_snp_analyser.py: Provides a number of test function to verify the correct functioning the getopts_parser.py.
     - test_all : Call all test functions
 
 @section usage_examples Usage Examples
@@ -61,4 +61,4 @@ print("\tSuccess\n")
 - pytest : Make test.py compatible with github workflow.
 """
 from . import getopts_parser
-from . import tests
+from . import test_getopts_parser

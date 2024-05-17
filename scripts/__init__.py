@@ -6,4 +6,4 @@
 from . import getopts_parser
 from . import utilities
 from . import snp_analyser
-from . import tests
+from . import test_snp_analyser
