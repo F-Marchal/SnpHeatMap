@@ -4,6 +4,7 @@
 which specifies options short and long names, their aliases and their type and their default value.
 
 @see getopts
+@note You can read test.py if you need some usage example of getopts
 
 @file getopts_parser.py
 @section libs Librairies/Modules

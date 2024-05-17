@@ -1,3 +1,8 @@
+"""!
+@brief Contain a number of function related to file reading and generation of figure using matplotlib.
+It's a toolbox for scripts/snp_analyser.py
+"""
+
 try:
     import matplotlib.pyplot as plt
 
@@ -13,6 +18,10 @@ except ModuleNotFoundError as E:
           f"\n\tpy -m ensurepip --upgrade"
           )
     exit(1)
+
+
+class FilterError(ValueError):
+    pass
 
 
 def export_list_in_tsv_as_rows(path: str, *rows, file_mode="w", encoding="UTF-8",
@@ -110,12 +119,119 @@ def chart_export(data: list[list[int]], show: bool = False, png: str = None, tsv
         plt.show()
 
 
+def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
+    """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
+    @param legend : Names all the line's columns. Example: ["A", "B", "C"]
+    @param line : Contains all the line's values. Example: "1|2|3|", "1|2|3" ...
+    @param separator : The symbol that splits the line's values. Example: "|", "\n", "\t" ...
+    @return A dictionary composed of legend's values and line's values.
+        Example:  @code {"A": "1", "B": "2", "C": "3"}  @endcode (using previous examples)
+
+    @note The returned dict always contain the same umber of object than legend.
+        - If legend > line : part of the legend's values will point to an empty string
+        - If legend < line : part of the line will be ignored
+    """
+
+    parsed_line = {}
+    split_line = line.split(separator)  # Split the line in "columns"
+
+    # Fill parsed_line
+    for i, column_name in enumerate(legend):
+        cell_value = split_line[i] if i < len(split_line) else ""
+        parsed_line[column_name] = cell_value
+        i += 1
+
+    return parsed_line
+
+
+def extract_data_from_table(path: str, key: str, value: str, separator: str = "\t",
+                            legend: list = None, filter_: callable = None) -> dict[str, any]:
+    """!
+    @brief Read a table contained inside a flatFile (e.g. tsv, csv, ...)
+
+    @warning If the column @p key contains the same value multiple times, only the last one is kept.
+
+    @param path : Path to a flatFile.
+    @param key : A column name that can be found in the legend. This will be used as a key in the returned dict.
+            Example: "Column3"
+    @param value : A column name that can be found in the legend. This will be used as a value in the returned dict
+            WHEN @p filter returns None or True. Example: "Column2"
+    @param separator : The symbol that splits line's values. Example: "|", "\n", "\t" ...
+    @param legend : If None: The first non-empty line in the file split using @p separator. Else: A list of column
+            names. Example: [Column1, Column2, Column3]
+    @param filter_ : A function that accepts 3 arguments: @p key, @p value, and the parsed line (dict). It
+            selects/generates the value present next to each key.
+                - If it returns True or None: value in the column @p value.
+                - If it returns False: this line is ignored.
+                - Else: The returned value is used (instead of the content of the column @p value).
+    @note filter_ is called one time per line.
+    @return A dictionary: {values in the column @p key (values that do not pass @p filter_ are ignored): values in the column @p value OR value returned by @p filter_}
+    """
+    # Open file
+    flux = open(path, "r", encoding="UTF-8")
+    data = {}
+
+    # Researched keys and values should be contained inside the legend.
+    if legend is not None and (key not in legend or value not in legend):
+        raise ValueError(f"Both key ('{key}') and value {value} should be contained inside legend : {legend}")
+
+    # Fill data
+    line_number = 0
+    for line in flux:
+        line_number += 1
+
+        # Special cases : empty line | empty file
+        if line == "\n" or line == "":
+            continue
+
+        # Special cases : Unknown legend
+        if legend is None:
+            legend = line.split(separator)
+
+            # Researched keys and values should be contained inside the legend.
+            if key not in legend or value not in legend:
+                raise ValueError(f"Both key ('{key}') and value ('{value}') should be contained inside the "
+                                 f"legend : {legend}")
+
+            if legend[-1][-1] == "\n":
+                legend[-1] = legend[-1][:-1]
+            continue
+
+        # Parse the line
+        parsed_line = parse_line(legend, line, separator)
+
+        # Apply the filter_
+        try:
+            func_result = filter_(key, value, parsed_line) if filter_ else None
+
+        except Exception as E:
+            raise FilterError(f"Filter error at the line '{line_number}' in the column '{key}' in the file {path} : "
+                              f"\n {E}")
+
+        if func_result is False:
+            continue
+
+        if func_result is None or func_result is True:
+            # Save  parsed_line[value]
+            data[parsed_line[key]] = parsed_line[value]
+
+        else:
+            # Save  func_result
+            data[parsed_line[key]] = func_result
+
+    # Close file
+    flux.close()
+
+    return data
+
+
 def make_bar_char(data: list[int],
                   x_legend: list = None, x_legend_is_int: bool = True, y_legend_is_int: bool = True,
                   chart_name: str = None,
                   title: str = None, xlabel: str = None, ylabel: str = None,
                   show: bool = False, png: str = None, tsv: str = None, svg: str = None,
-                  erase_last_plt: bool = True):
+                  erase_last_plt: bool = True,
+                  y_max_value: int = None):
     """!
     @brief Create a @ref plt.bar using a bunch of argument.
     This function is made to assure a correct looking legend when used for snp.
@@ -132,6 +248,7 @@ def make_bar_char(data: list[int],
     @param png : str = None => Give a path to export the current plot as png
     @param tsv : str = None => Give a path to export @p data into a tsv.
     @param svg : str = None => Give a path to export the current plot as svg
+    @param y_max_value : int = None => The y-axis will stop at this value
     @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot display
     """
 
@@ -140,6 +257,10 @@ def make_bar_char(data: list[int],
         plt.close('all')
         plt.clf()
         plt.cla()
+
+    if y_max_value is not None and y_max_value >= 1:
+        fig, ax = plt.subplots()
+        ax.set_ylim(0, y_max_value)
 
     # Add ticks
     if x_legend:
@@ -156,6 +277,7 @@ def make_bar_char(data: list[int],
 
     if x_legend_is_int:
         plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
 
     # Add labels
     plt.xlabel(xlabel)
@@ -291,99 +413,3 @@ def make_heatmap(data: list[list[int]],
                 plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color, fontsize=font_size)
 
     chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
-
-
-def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str, str]:
-    """! @brief Turn a line form a flat File with its legend and turn it into a dictionary.
-    @param legend : Names all the line's columns. Example: ["A", "B", "C"]
-    @param line : Contains all the line's values. Example: "1|2|3|", "1|2|3" ...
-    @param separator : The symbol that splits the line's values. Example: "|", "\n", "\t" ...
-    @return A dictionary composed of legend's values and line's values.
-        Example:  @code {"A": "1", "B": "2", "C": "3"}  @endcode (using previous examples)
-
-    @note The returned dict always contain the same umber of object than legend.
-        - If legend > line : part of the legend's values will point to an empty string
-        - If legend < line : part of the line will be ignored
-    """
-
-    parsed_line = {}
-    split_line = line.split(separator)  # Split the line in "columns"
-
-    # Fill parsed_line
-    for i, column_name in enumerate(legend):
-        cell_value = split_line[i] if i < len(split_line) else ""
-        parsed_line[column_name] = cell_value
-        i += 1
-
-    return parsed_line
-
-
-def extract_data_from_table(path: str, key: str, value: str, separator: str = "\t",
-                            legend: list = None, filter_: callable = None) -> dict[str, any]:
-    """!
-    @brief Read a table contained inside a flatFile (e.g. tsv, csv, ...)
-
-    @warning If the column @p key contains the same value multiple times, only the last one is kept.
-
-    @param path : Path to a flatFile.
-    @param key : A column name that can be found in the legend. This will be used as a key in the returned dict.
-            Example: "Column3"
-    @param value : A column name that can be found in the legend. This will be used as a value in the returned dict
-            WHEN @p filter returns None or True. Example: "Column2"
-    @param separator : The symbol that splits line's values. Example: "|", "\n", "\t" ...
-    @param legend : If None: The first non-empty line in the file split using @p separator. Else: A list of column
-            names. Example: [Column1, Column2, Column3]
-    @param filter_ : A function that accepts 3 arguments: @p key, @p value, and the parsed line (dict). It
-            selects/generates the value present next to each key.
-                - If it returns True or None: value in the column @p value.
-                - If it returns False: this line is ignored.
-                - Else: The returned value is used (instead of the content of the column @p value).
-    @note filter_ is called one time per line.
-    @return A dictionary: {values in the column @p key (values that do not pass @p filter_ are ignored): values in the column @p value OR value returned by @p filter_}
-    """
-    # Open file
-    flux = open(path, "r", encoding="UTF-8")
-    data = {}
-
-    # Researched keys and values should be contained inside the legend.
-    if legend is not None and (key not in legend or value not in legend):
-        raise ValueError(f"Both key ('{key}') and value {value} should be contained inside legend : {legend}")
-
-    # Fill data
-    for line in flux:
-        # Special cases : empty line | empty file
-        if line == "\n" or line == "":
-            continue
-
-        # Special cases : Unknown legend
-        if legend is None:
-            legend = line.split(separator)
-
-            # Researched keys and values should be contained inside the legend.
-            if key not in legend or value not in legend:
-                raise ValueError(f"Both key ('{key}') and value('{value}') should be contained inside the legend : {legend}")
-
-            if legend[-1][-1] == "\n":
-                legend[-1] = legend[-1][:-1]
-            continue
-
-        # Parse the line
-        parsed_line = parse_line(legend, line, separator)
-
-        # Apply the filter_
-        func_result = filter_(key, value, parsed_line) if filter_ else None
-        if func_result is False:
-            continue
-
-        if func_result is None or func_result is True:
-            # Save  parsed_line[value]
-            data[parsed_line[key]] = parsed_line[value]
-
-        else:
-            # Save  func_result
-            data[parsed_line[key]] = func_result
-
-    # Close file
-    flux.close()
-
-    return data

@@ -1,5 +1,5 @@
 """!
-@file snp_charts.py
+@file snp_analyser.py
 @brief
 Create a number of chart related to snp (simple nucleotide polymorphism) analysis
 
@@ -40,7 +40,7 @@ import json
 
 try:
     from scripts.utilities.utilities import export_list_in_tsv_as_rows, chart_export, make_bar_char, make_heatmap, \
-        parse_line, extract_data_from_table
+        parse_line, extract_data_from_table, FilterError
     from scripts.getopts_parser import getopts_parser
 
 
@@ -74,6 +74,7 @@ __getopts__ = {
     "output_path=":             ("o:", ("output/", str)),
     "job_name=":                ("j:", ("Unnamed", str)),
     "max_length=":              ("m:", (20, int)),
+    "show_values=":             ("e:", (None, int)),
 
     # long name:                (shorten_name, (inactive value, active value))
     #                                           None = (True, False)
@@ -89,36 +90,50 @@ __getopts__ = {
     "png":                      ("k", None),
     "show":                     ("d", None),
     "svg":                      ("v", None),
-    "show_values=":             ("e:", (None, int))
+    ("uniform_y", "uniform"):   ("y", None)
+
 }
 
 
 def help_usage():
-    return ("python3 snp_charts.py [Gene name Column] [Snp column] [Path to your files] [Options]"
+    return ("python3 snp_analyser.py [Gene name Column] [Snp column] [Path to your files] [Options]"
             f"\nOptions are : "
             f"\n{'\t'.join([      f'{short_key} / {key}, ' if short_key[-1] != ":" 
                             else f'{short_key[:-1]} / {key}, ' for key, (short_key, _) in __getopts__.items()
                             ]
                            )}"
-            f"\nSee README.md for more details")
+            f"\nSee README.md for more details\n")
 
 
-def greater_than_0_int_filter(_, key: int=None, dictionary: dict = None) -> bool:
+def filter_integer_greater_or_equal_to_0_ignore_0(key: str or int, dictionary: dict = None) -> bool:
     """!
-    @brief Test if the value in front of the key @p key inside @p dictionary can be an integer bigger than 0.
-    Meant to be used inside  @ref extract_data_from_table as a "filter_"
+    @brief Test if the value in front of the key @p key inside @p dictionary can be cast into an integer bigger than 0.
 
-    @param _ => Unused parameter. Exist due to how "filter_" in @extract_data_from_table works
-    @param key : int = None => A key contained by @p dictionary.
-    @param dictionary : dict = None => A dictionary that contain @p key
+    Meant to be used inside  @ref extract_data_from_table as a "filter_" using a lambda.
+        - value == 0 : Line is ignored
+        - value > 0 : Line is kept
+        - Value < 0 : Error is raised
 
-    @return bool => True : Yes ; False : No.
+    @warning does not support "1.0 nor "1,0" format
+
+    @param key : str => A key contained by @p dictionary.
+    @param dictionary : dict = None => A dictionary that contain @p key. If None, the function will assume that
+    @code dictionary = {key: key} @endcode
+
+    @return bool => True : Yes
+                    False : value equal to 0
+    @raise ValueError when the value is an integer lower than 0
 
     """
-    try:
-        return int(dictionary[key]) > 0
-    except ValueError:
+    if dictionary is None:
+        dictionary = {key: key}
+
+    value = int(dictionary[key])
+    if value == 0:
         return False
+    elif value < 0:
+        raise ValueError(f"Integer lower or equal to 0 : {value}")
+    return True
 
 
 def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[str, int]] = None,
@@ -138,6 +153,10 @@ def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[s
 
     @return dict[int, dict[str, int]] => A dictionary that store all number of snp found along with the number of
     occurrences {number_of_snp_1 : {group1: number_of_occurrences_of_number_of_snp_1_in_this_group}
+
+    @warning values @p genes_snp are cast into integer. Also, there is no verification made to see if the values are
+    positive. We assume that data has been filtered using @ref filter_integer_greater_or_equal_to_0_ignore_0 in
+    @ref extract_data_from_table
     """
     dict_of_number = {} if dict_of_number is None else dict_of_number
 
@@ -198,7 +217,7 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
 
     @note For some return example, see @p simplified for return example
     """
-    if max_length <= 0:
+    if max_length is None or max_length <= 0:
         max_length = None
 
     # Variables
@@ -282,7 +301,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
          global_heatmap: bool = True, quantitative_barchart: bool = False, cumulative_barchart: bool = False,
          cumulative_heatmap: bool = False,
          tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
-         sort_by_name: bool = True,
+         sort_by_name: bool = True, uniform_y: bool = True,
          show_values: int = -1) -> int:
     """!
     @brief Create a number of chart related to snp analysis.
@@ -318,9 +337,10 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     @param tsv : bool = False => Do values used for chart are saved in a flatfile (.tsv)
     @param png : bool = False => Do created charts are saved as png
     @param show : bool = False => Do created charts are saved are shown
-        @warning Each time a char is shown, the program stop. It will resume when the chart is closed.
+        @warning Each time a chart is shown, the program stop. It will resume when the chart is closed.
     @param svg : bool = True => Do created charts are saved as svg (vectorize image)
     @param sort_by_name : bool = True => Do species are sorted in lexicographic order ?
+    @param uniform_y : bool = True => Do all barchart share the same y axis ?
     @param show_values : int = None => If greater or equal to 0, all cells will contain theirs values. if lower than 0,
     text in cell in automatically determined (can be ugly when show is True, but assure that the text is good in
     png and svg). If None, nothing happen.
@@ -426,8 +446,19 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         if files[0] == ".":
             continue
 
-        files_dict = extract_data_from_table(f"{file_path_prefix}{files}", key=name_column, value=snp_column,
-                                             filter_=greater_than_0_int_filter, separator=file_separator)
+        try:
+            files_dict = extract_data_from_table(f"{file_path_prefix}{files}", key=name_column, value=snp_column,
+                                                 filter_=lambda _, val, dict_:
+                                                            filter_integer_greater_or_equal_to_0_ignore_0(val, dict_),
+                                                 # "_" in lambda is mendatory due to how extract_data_from_table works.
+                                                 separator=file_separator)
+        except FilterError as E:
+            print(f"An error occurred : {E}\n"
+                  
+                  f"This program only accept positive integer in the following format : '1000', '1_000', '+1000'.\n"
+                  f"Look for miss formated data in {snp_column}")
+
+            return 100
 
         if files in path_translation:
             all_species.append(path_translation[files])
@@ -444,6 +475,19 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         return 2
 
     data, x_legend = make_data_matrix(all_snp, *all_species, simplified=simplified, max_length=max_length)
+
+    # Uniformize all y axis
+    if uniform_y:
+        max_quantitative_value = 0
+        max_cumulative_value = 0
+        for lines in data:
+            max_quantitative_value = max(max(lines), max_quantitative_value)
+            max_cumulative_value = max(sum(lines), max_quantitative_value)
+        max_quantitative_value += 1
+        max_cumulative_value += 1
+    else:
+        max_quantitative_value = None
+        max_cumulative_value = None
 
     if len(x_legend) == x_legend[-1]:
         # if the legend is equivalent of the automatic one, we use the automatic legend
@@ -467,6 +511,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                           png=f"{q_bar_png}{line_name}" if q_bar_png else None,
                           tsv=f"{q_bar_tsv}{line_name}" if q_bar_tsv else None,
                           svg=f"{q_bar_svg}{line_name}" if q_bar_svg else None,
+                          y_max_value = max_quantitative_value
                           )
 
         # Replace the quantitative list by a cumulative list
@@ -482,12 +527,11 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                           png=f"{c_bar_png}{line_name}" if c_bar_png else None,
                           tsv=f"{c_bar_tsv}{line_name}" if c_bar_tsv else None,
                           svg=f"{c_bar_svg}{line_name}" if c_bar_svg else None,
-                          )
+                          y_max_value = max_cumulative_value)
 
     # Heatmap generation
     if cumulative_heatmap:
         for i, lines in enumerate(data):
-
             make_heatmap([lines], y_legend=[all_species[i]], x_legend=x_legend,
                          title=f"Number of genes with at least n SNP : {all_species[i]}",
                          xlabel="Number of snp",
@@ -522,7 +566,7 @@ def main_using_getopts(argv: list[str] or str):
     @note If the first values are not known option (option in @p getopts_options), the function will consider that
     those values correspond to the nth first option that require an argument in @p getopts_options.
     In below example, you can give two arguments. The first will be matched with "Alpha" and the last with "Beta".
-     @code
+    @code
     argv = ["5", "6"]
     getopts_options = {
         "Alpha=":               ("a:", None),
