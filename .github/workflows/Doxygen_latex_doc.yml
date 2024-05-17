@@ -16,12 +16,16 @@ jobs:
     - name: Install Doxygen
       run: sudo apt-get install -y doxygen
       
+    - name: Install LaTeX and related packages
+      run: |
+        sudo apt-get install -y texlive texlive-latex-extra texlive-fonts-recommended
+      
     - name: Generate Doxygen LaTeX Doc
       run: |
-        cd doc  # Change into the directory containing the Doxyfile
+        cd doc
         doxygen Doxyfile
         
-    - name: Move LaTeX output to doc/ directory
+    - name: Move LaTeX output to doc_output directory
       run: |
         mkdir -p doc_output
         mv doc/latex/* doc_output/
@@ -29,6 +33,7 @@ jobs:
     - name: Compile LaTeX to PDF
       run: |
         cd doc_output
+        pdflatex refman.tex
         make
         
     - name: Upload PDF Doc
