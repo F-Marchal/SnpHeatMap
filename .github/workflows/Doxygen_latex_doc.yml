@@ -33,7 +33,6 @@ jobs:
     - name: Compile LaTeX to PDF
       run: |
         cd doc_output
-        pdflatex refman.tex
         make
         
     - name: Upload PDF Doc
