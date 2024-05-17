@@ -1,22 +1,15 @@
 #!/usr/bin/env python3
 # encoding=utf-8
-"""! @brief Give access to a new version of "getopt". This new "getopt"use a dictionary. It allow :
-- Easy definition of a number of aliases :
-@code {(aliase1, aliase2 ...) : ((shorten_alliase1, shorten_allias2 ...) None)} @endcode
-- Automatic default value :
-@code {test1=: (None, (33, None))} # test1 is equal to 33 when the parameter is not used. @endcode
-- Automatic Cast :
-@code {test1=: (None, (None, Int))} # test1 is cast into integer when parsed. @endcode
-- Any boolean parameter can have custom values:
-@code {test1: ("t", ("Alpha", "Beta"))} # When -t --> test1="Alpha" Otherwise  test1="Beta" @endcode
+"""!Directly extract options from a command line into a dict. All option's values are cast according to a dictionary
+which specifies options short and long names, their aliases and their type and their default value.
 
 @see getopts
 
 @file getopts_parser.py
 @section libs Librairies/Modules
-- getopt (link)
+- getopt
 @section authors Author(s)
-- Created by MArchal Florent on 16/05/2024 .
+- Created by Marchal Florent on 16/05/2024 .
 """
 import getopt
 
@@ -381,6 +374,12 @@ def getopts_parser(argv: list[str] or str, getopts_options: dict[str, tuple[any,
                 mandatory.remove(parent)
             
         else:
+            if value and value[0] == "-" and value in complex_keys or value in boolean_keys:
+                # Avoid that an option is taken as value by another one
+                # Still allow negative numbers
+                raise GetoptsOptionError(f"The option '{opt}' is followed by a parameter '{value}' instead of "
+                                         f"a value.")
+
             # Apply value restriction
             if opt[0:2] == "--":
                 parent = complex_keys[opt + "="]
@@ -409,12 +408,11 @@ def getopts(argv: list[str] or str, getopts_options: dict[str or tuple, None or 
             *mandatory: str, help_message: str = None, fill_with_default_values=True,
             raise_errors=False, help_options: str or tuple[str] = ("help", )) -> dict[str, any] or int:
     """!
-    @brief Use a command line or a string to create a dictionary. Option that can be recognized by this function
-    are determined by @p getopts_options. Values related to all option are configurable using @p getopts_options.
-    All options can have multiple aliases and values related to each option can be cast in any type.
+    @brief Directly extract options from a command line into a dict. All option's values are cast according to a
+    dictionary @p getopts_options which specifies options short and long names, their aliases and their type and
+    their default value.
 
     This function use @ref getopt.getopt.
-
 
     @param argv : list[str] or str => [description]
     @param getopts_options : dict[str, tuple[any, any]] =>
@@ -464,7 +462,6 @@ def getopts(argv: list[str] or str, getopts_options: dict[str or tuple, None or 
             - 1 = An errors been caught
             - 2 = help message was required.
     """
-    
 
     try:
         vals = getopts_parser(argv, getopts_options, *mandatory,

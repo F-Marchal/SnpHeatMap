@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # encoding=utf-8
 """! @brief Script to use in order to test "getopts_parser" functionalities.
- @file tests_getopts_parser.py
+ @file tests.py
  @section libs Libraries / Modules
   - getopts_parser
   - pytest
@@ -11,11 +11,18 @@
 __author__ = "Marchal Florent"
 __credits__ = ["Florent Marchal"]
 
-import getopts_parser
 try:
+    from . import getopts_parser
     import pytest
+
 except ModuleNotFoundError as E:
-    print(f"Module not found : {E}\n"
+    print(f"Module not found : {E}\n")
+
+    if E.name == "getopts_parser":
+        print(f"Make sure that 'getopts_parser' is in the same folder as {__file__}")
+
+    else:
+        print(
           f"Open a terminal and try : "
           f"\n\tpip install pytest"
           
@@ -28,7 +35,7 @@ except ModuleNotFoundError as E:
     exit(1)
 
 
-def simple():
+def test_simple_option():
     """!
     @brief Test simple functionality of getopts_parser
     """
@@ -79,7 +86,7 @@ def simple():
     print("\tSuccess\n")
 
 
-def aliases():
+def test_aliases():
     """!
     @brief Test aliases functionality
     """
@@ -168,7 +175,7 @@ def aliases():
     print("\tSuccess\n")
 
 
-def defaults():
+def test_defaults_values():
     """!
     @brief Test default value and cast
     """
@@ -222,15 +229,23 @@ def defaults():
     assert val["Epsilon"] == "Star"
     print("\tSuccess\n")
 
+    print("Testing parameter without option")
+    with pytest.raises(getopts_parser.GetoptsOptionError):
+        getopts_parser.getopts("1 --Eta --Iota --Beta -g", options_, raise_errors=True)
 
-def main():
+    with pytest.raises(getopts_parser.GetoptsParsingError):
+        getopts_parser.getopts("1 --Eta --Iota --Beta", options_, raise_errors=True)
+    print("\tSuccess\n")
+
+
+def test_all():
     """!
     @brief Call each test functions
     """
-    simple()
-    aliases()
-    defaults()
+    test_simple_option()
+    test_aliases()
+    test_defaults_values()
 
 
 if __name__ == "__main__":
-    main()
+    test_all()
