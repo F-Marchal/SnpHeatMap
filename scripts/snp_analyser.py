@@ -96,12 +96,16 @@ __getopts__ = {
 
 
 def help_usage():
+    option_list = ""
+    for key, (short_key, _) in __getopts__.items():
+        if short_key[-1] != ":":
+            option_list += f'{short_key} / {key}, \t'
+        else:
+            option_list += f'{short_key[:-1]} / {key}, \t'
+
     return ("python3 snp_analyser.py [Gene name Column] [Snp column] [Path to your files] [Options]"
             f"\nOptions are : "
-            f"\n{'\t'.join([      f'{short_key} / {key}, ' if short_key[-1] != ":" 
-                            else f'{short_key[:-1]} / {key}, ' for key, (short_key, _) in __getopts__.items()
-                            ]
-                           )}"
+            f"\n{option_list}"
             f"\nSee README.md for more details\n")
 
 
