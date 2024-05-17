@@ -414,7 +414,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
         if r_.lower() not in ("y", "ye", "yes", "t", "tr", "tru", "true"):
             print("Job stopped")
-            return 1
+            return 2
 
     # ---- ---- Export Control ---- ---  "
     heat_png = f"{heatmap_prefix}" if png and global_heatmap else None
@@ -458,7 +458,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                   f"This program only accept positive integer in the following format : '1000', '1_000', '+1000'.\n"
                   f"Look for miss formated data in {snp_column}")
 
-            return 100
+            return 5
 
         if files in path_translation:
             all_species.append(path_translation[files])
@@ -472,7 +472,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
 
     # ---- ---- Matrix and chart generation ---- ----
     if not all_species:
-        return 2
+        return 4
 
     data, x_legend = make_data_matrix(all_snp, *all_species, simplified=simplified, max_length=max_length)
 
@@ -587,7 +587,7 @@ def main_using_getopts(argv: list[str] or str):
                                              raise_errors=False,
                                              help_message=help_usage())
         if isinstance(main_params, int):
-            exit(main_params + 20)
+            exit(main_params + 10)
 
     except Exception as E:
         print(E)
