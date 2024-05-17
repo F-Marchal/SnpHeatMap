@@ -30,7 +30,7 @@ Files used by this script are expected to have the following pattern :
 
 - All files have to have the same headers 
 - When a gene is present multiple times, only the last occurrence is used
-- Snp counter should be integer. No dot ('.') or comma (',') are allowed in this cell.
+- Snp counter should be integer greater or equal to 0. No dot ('.') or comma (',') are allowed in this cell.
 
 
 
@@ -160,6 +160,9 @@ If greater or equal to 0, all heatmap's cells will contain theirs values. if low
 text size in cell is automatically determined 
 (can be ugly in the windows displayed by -d, but assure that the text is well sized in 
 png and svg). If unspecified, cells are empty.
+
+##### --uniform_y --uniform -y:
+Uniformize all y-axis
 
 ## Example chart
 Charts generated using `python3 Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -k -gqcu -w -j Examples`
