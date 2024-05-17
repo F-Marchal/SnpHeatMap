@@ -1,0 +1,37 @@
+name: Generate Doxygen LaTeX Doc
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Install Doxygen
+      run: sudo apt-get install -y doxygen
+      
+    - name: Generate Doxygen LaTeX Doc
+      run: |
+        doxygen Doxyfile
+        
+    - name: Move LaTeX output to doc/ directory
+      run: |
+        mkdir -p doc
+        mv latex_output_directory/* doc/
+        
+    - name: Compile LaTeX to PDF
+      run: |
+        cd doc/
+        make
+        
+    - name: Upload PDF Doc
+      uses: actions/upload-artifact@v2
+      with:
+        name: pdf-doc
+        path: doc/refman.pdf
