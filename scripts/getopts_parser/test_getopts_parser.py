@@ -32,6 +32,7 @@ except ModuleNotFoundError as E:
           f"\n\tpython -m ensurepip --upgrade"
           f"\nOn Windows : "
           f"\n\tpy -m ensurepip --upgrade"
+          f"\n\nIf pip remains undetected, try to edit the system environment variables by adding pip to PATH."
           )
     exit(1)
 

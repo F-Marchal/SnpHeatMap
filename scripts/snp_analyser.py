@@ -156,7 +156,7 @@ def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[s
     @param group : str = "None" => Each occurrence of a number of snp increment the counter related to this group.
 
     @return dict[int, dict[str, int]] => A dictionary that store all number of snp found along with the number of
-    occurrences {number_of_snp_1 : {group1: number_of_occurrences_of_number_of_snp_1_in_this_group}
+    occurrences @code {number_of_snp_1 : {group1: number_of_occurrences_of_number_of_snp_1_in_this_group} @endcode
 
     @warning values @p genes_snp are cast into integer. Also, there is no verification made to see if the values are
     positive. We assume that data has been filtered using @ref filter_integer_greater_or_equal_to_0_ignore_0 in
@@ -344,7 +344,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         @warning Each time a chart is shown, the program stop. It will resume when the chart is closed.
     @param svg : bool = True => Do created charts are saved as svg (vectorize image)
     @param sort_by_name : bool = True => Do species are sorted in lexicographic order ?
-    @param uniform_y : bool = True => Do all barchart share the same y axis ?
+    @param uniform_y : bool = True => Do all barchart share the same y-axis ?
     @param show_values : int = None => If greater or equal to 0, all cells will contain theirs values. if lower than 0,
     text in cell in automatically determined (can be ugly when show is True, but assure that the text is good in
     png and svg). If None, nothing happen.

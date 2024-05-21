@@ -1,4 +1,5 @@
 """!
+@file utilities.py
 @brief Contain a number of function related to file reading and generation of figure using matplotlib.
 It's a toolbox for scripts/snp_analyser.py
 """
@@ -16,34 +17,34 @@ except ModuleNotFoundError as E:
           f"\n\tpython -m ensurepip --upgrade"
           f"\nOn Windows : "
           f"\n\tpy -m ensurepip --upgrade"
+          f"\n\nIf pip remains undetected, try to edit the system environment variables by adding pip to PATH."
           )
     exit(1)
 
 
 class FilterError(ValueError):
+    """An error raised by @ref extract_data_from_table when a filter_ raise an error"""
     pass
 
 
 def export_list_in_tsv_as_rows(path: str, *rows, file_mode="w", encoding="UTF-8",
                                y_legend: list = None, x_legend: list = None):
     """!
-    @brief Accept a number of list that represent rows of a tab and turn it intoo a tsv (flat file).
+    @brief Accept a number of list that represent rows of a tab and turn it into a tsv (flat file).
 
     @warning  Any "\t" or "\n" in rows' values will disrupt lines and / or columns
+    - each "\t" will generate additional columns
+    - each "\n" will break the current line and start a new one.
 
-    Parameters :
-        @param path : str => path (and name) of the file that will be written.
-        @param *rows => A number of list
-        @param file_mode = "w" => "w" or "a"
-            - "w": if a file with the same path exist, old file is erased
-            - "a": if a file with the same path exist, old file append new values
-        @param encoding = "UTF-8" => File encoding
-        @param y_legend : list = None => A list of item to be display in the first column
-        @param x_legend : list = None => A list of item to be display at top of the file
-
+    @param path : str => path (and name) of the file that will be written.
+    @param *rows => A number of list
+    @param file_mode = "w" => "w" or "a"
+        - "w": if a file with the same path exist, old file is erased
+        - "a": if a file with the same path exist, old file append new values
+    @param encoding = "UTF-8" => File encoding
+    @param y_legend : list = None => A list of item to be display in the first column
+    @param x_legend : list = None => A list of item to be display in the first line
     """
-    # WARNING: \t and \n in rows can distributed lines / columns
-
     # Open file
     file_flux = open(path, mode=file_mode, encoding=encoding)
 
@@ -89,17 +90,18 @@ def chart_export(data: list[list[int]], show: bool = False, png: str = None, tsv
     """!
     @brief Export the current chart.
 
-    @note if data is the only argument, nothing happen.
+    @note if data is the only argument, nothing will happen.
 
     @param data : list[list[int]] => A matrix of values
-    @param show : bool = False => Do current plot will be displayed ?
+    @param show : bool = False => Do current plot will be displayed in a pop-up ?
+    @warning this will stop program execution until the pop-up is closed.
     @param png : str = None => Give a path to export the current plot as png
     @param tsv : str = None => Give a path to export @p data into a tsv.
     @param svg : str = None => Give a path to export the current plot as svg
-    @param y_legend : list = None => When tsv is not none: A list of item to be display in the first column
-                (@ref export_list_in_tsv_as_rows)
-    @param x_legend : list = None => When tsv is not none: A list of item to be display at top of the file
-                (@ref export_list_in_tsv_as_rows)
+    @param y_legend : list = None => When @p tsv is not none:  A list of item to be display in the first column
+    (@ref export_list_in_tsv_as_rows)
+    @param x_legend : list = None => When @p tsv is not none:  A list of item to be display in the first line
+    (@ref export_list_in_tsv_as_rows)
 
     """
     # Png export
@@ -125,9 +127,9 @@ def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str,
     @param line : Contains all the line's values. Example: "1|2|3|", "1|2|3" ...
     @param separator : The symbol that splits the line's values. Example: "|", "\n", "\t" ...
     @return A dictionary composed of legend's values and line's values.
-        Example:  @code {"A": "1", "B": "2", "C": "3"}  @endcode (using previous examples)
+        Example (using previous examples):  @code {"A": "1", "B": "2", "C": "3"}  @endcode
 
-    @note The returned dict always contain the same umber of object than legend.
+    @note The returned dict always contain the same number of object than legend.
         - If legend > line : part of the legend's values will point to an empty string
         - If legend < line : part of the line will be ignored
     """
@@ -165,7 +167,8 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
                 - If it returns False: this line is ignored.
                 - Else: The returned value is used (instead of the content of the column @p value).
     @note filter_ is called one time per line.
-    @return A dictionary: {values in the column @p key (values that do not pass @p filter_ are ignored): values in the column @p value OR value returned by @p filter_}
+    @return A dictionary: {values in the column @p key (values that do not pass @p filter_ are ignored): values in the
+    column @p value OR value returned by @p filter_}
     """
     # Open file
     flux = open(path, "r", encoding="UTF-8")
@@ -245,6 +248,7 @@ def make_bar_char(data: list[int],
     @param xlabel : str = None => A title for the x-axis
     @param ylabel : str = None => A title for the y-axis
     @param show : bool = False => Do current plot will be displayed ?
+    @warning this will stop program execution until the pop-up is closed.
     @param png : str = None => Give a path to export the current plot as png
     @param tsv : str = None => Give a path to export @p data into a tsv.
     @param svg : str = None => Give a path to export the current plot as svg
@@ -278,7 +282,6 @@ def make_bar_char(data: list[int],
     if x_legend_is_int:
         plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
-
     # Add labels
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -307,6 +310,7 @@ def make_heatmap(data: list[list[int]],
     @param xlabel : str = None => A title for the x-axis
     @param ylabel : str = None => A title for the y-axis
     @param show : bool = False => Do current plot will be displayed ?
+    @warning this will stop program execution until the pop-up is closed.
     @param png : str = None => Give a path to export the current plot as png
     @param tsv : str = None => Give a path to export @p data into a tsv.
     @param svg : str = None => Give a path to export the current plot as svg
