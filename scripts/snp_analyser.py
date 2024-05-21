@@ -362,8 +362,6 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     # Assure that max_length is None or greater or equal to 1
     if max_length <= 0:
         max_length = None
-    if show_values <= 0:
-        show_values = -1
 
     # Assure that at least one thing will be generated
     if not (global_heatmap or quantitative_barchart or cumulative_barchart or cumulative_heatmap):
