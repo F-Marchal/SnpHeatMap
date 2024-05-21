@@ -10,18 +10,14 @@ which specifies options short and long names, their aliases and their type and t
     - getopts : The main function. Handles error.
     - getopts_parser : Same as getopts but without any error handling
 
-- @ref test_snp_analyser.py: Provides a number of test function to verify the correct functioning the getopts_parser.py.
+- @ref test_getopts_parser.py: Provides a number of test function to verify the correct functioning the
+    getopts_parser.py.
     - test_all : Call all test functions
 
 @section usage_examples Usage Examples
 Basic usage:
 @code{.py}
-import mypackage
-mypackage.init_function()
-# Output: This is an init function!
-
-from mypackage import module1
-module1.module1_function()
+import getopts_parser
 @endcode
 
 Advanced usage:
@@ -42,8 +38,8 @@ options_ = {
     'Mu': None,
 }
 
-val = getopts_parser.getopts("1 --Eta --Iota -b Test2 --Kap" -g,
-                             options_, fill_with_default_values=True)
+val = getopts_parser.getopts_parser("1 --Eta --Iota -b Test2 --Kap" -g,
+                                    options_, fill_with_default_values=True)
 
 #
 # val["Alpha"] == 1
@@ -58,7 +54,7 @@ print("\tSuccess\n")
 
 @section dependencies Dependencies
 - getopt : Parse a command line.
-- pytest : Make test.py compatible with github workflow.
+- pytest : Used in test_getopts_parser.py to test getopts_parser.py .
 """
 from . import getopts_parser
 from . import test_getopts_parser

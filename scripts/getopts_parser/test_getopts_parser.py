@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # encoding=utf-8
-"""! @brief Script to use in order to test "getopts_parser" functionalities.
+"""! @file test_getopts_parser.py
+ @brief Script to use in order to test "getopts_parser" functionalities.
  @file test_snp_analyser.py
  @section libs Libraries / Modules
   - getopts_parser
@@ -9,7 +10,7 @@
   - Created by Marchal Florent on 16/5/2024 .
 """
 __author__ = "Marchal Florent"
-__credits__ = ["Florent Marchal"]
+__credits__ = ["Marchal Florent"]
 
 try:
     from . import getopts_parser

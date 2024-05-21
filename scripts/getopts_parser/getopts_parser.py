@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # encoding=utf-8
-"""!Directly extract options from a command line into a dict. All option's values are cast according to a dictionary
-which specifies options short and long names, their aliases and their type and their default value.
+"""!
+@file getopts_parser.py
+Directly extract options from a command line into a dict. All option's values are cast according to a
+ dictionary which specifies option's short name (-h), option's long names (--help),
+ option's aliases (--HELP), option's type (str, int ...) and option's default value.
+
+You can find some usage example in @ref ./test_getopts_parser.py
 
 @see getopts
 @note You can read test.py if you need some usage example of getopts
@@ -9,21 +14,24 @@ which specifies options short and long names, their aliases and their type and t
 @file getopts_parser.py
 @section libs Librairies/Modules
 - getopt
+
 @section authors Author(s)
 - Created by Marchal Florent on 16/05/2024 .
 """
+__author__ = "Marchal Florent"
+__credits__ = ["Marchal Florent"]
 import getopt
 
 
 class GetoptsDigestionError(getopt.GetoptError):
     """!
-    @brief Error raised when an occur during the digestion of the dictionary that contain options accepted by a getopts
+    @brief Error raised during the digestion of the dictionary that contain options.
     """
 
 
 class GetoptsOptionError(getopt.GetoptError):
     """!
-    @brief Error raised when there is an error with an option related to a getopts
+    @brief Error raised when there is an error with an option during the getopts.
     """
 
 
@@ -33,18 +41,20 @@ class GetoptsParsingError(getopt.GetoptError):
     """
 
 
-def getopts_parser_boolean_option(value_restriction: tuple[any, any] or None, use_default=False) -> any:
+def getopts_parser_boolean_option(value_restriction: tuple[any, any] = None, use_default=False) -> any:
     """!
     @brief Internal function used by  @ref getopts_parser.
 
-    @param value_restriction : tuple[any, any] => A tuple of two value. (Default value, normal value).
+    @param value_restriction : tuple[any, any] = None => A tuple of two value. (Default value, normal value).
     (False, True) when None
     @param use_default = False => Do the default value is returned
 
      @return any =>
         - True if value_restriction is None
-        - Default value if @p value_restriction is True (@p value_restriction [1])
-        - Normal value if @p value_restriction is False (@p value_restriction [0])
+        - Default value if @p use_default is True (@p value_restriction [1])
+        - Normal value if @p use_default is False (@p value_restriction [0])
+
+    @see getopts_parser
     """
     if value_restriction is None:
         value_restriction = (False, True)
@@ -58,19 +68,24 @@ def getopts_parser_boolean_option(value_restriction: tuple[any, any] or None, us
 
 def getopts_parser_complex_option(value_restriction, value, use_default=False) -> any:
     """!
-    @brief Internal function used by  @ref getopts_parser. Use it to apply a number of restriction on a value.
+    @brief Internal function used by  @ref getopts_parser. Apply a number of restriction materialised by @p
+    value_restriction on a value.
 
-    Parameters :
-        @param value_restriction : tuple[any, callable] => > A tuple of two value. (Default value, normal value).
+
+    @param value_restriction : tuple[any, callable] => A tuple of two value :
+    - Default value => Any, if callable, the function is called each time the default value is requested.
+    - restrictions => None or a callable.
          (False, True) when None
-         - if value_restriction[0] is callable : default = result of the function (no argument is given)
-         - if value_restriction[0] is not callable : default = value_restriction[0]
-         - if value_restriction[1] callable : is applied to @p value, the result is used as return value. If None
-         @p value is returned with no change
-        @param value => Value that can be returned. This value pass inside @p value_restriction [1]
-        @param use_default = False => Do the default value is returned
+         - if value_restriction[0] is callable AND default value is requested : value_restriction [0] ()
+         - if value_restriction[0] is not callable and default value is requested : value_restriction [0]
+         - if value_restriction[1] is callable : value_restriction is  called using @p value as argument, the result is
+                used as return value. If the result is None, directly return the @p value.
+    @param value => Value on which @p value_restriction is applied.
+    @param use_default = False => If True, return the default value.
 
-     @return any => @p value transformed by  @p value_restriction [1]
+    @return any => @p value transformed by  @p value_restriction [1]
+
+    @see getopts_parser
     """
     if value_restriction is None:
         value_restriction = (None, None)
@@ -94,7 +109,7 @@ def getopts_parser_complex_option(value_restriction, value, use_default=False) -
 def getopts_digester_check_item_endings(list_of_values: list[str], last_char: str = ":",) -> bool or None:
     """!
     @brief Check if the last char of each string in @p list_of_values is equal to last_char.
-    if some od themes are equals and others are not, an error is raised.
+    if some are equals and others are not, an error is raised.
 
     @param list_of_values : list[str] => A list of string
     @param last_char : str = ":" => A character
@@ -117,6 +132,7 @@ def getopts_digester_check_item_endings(list_of_values: list[str], last_char: st
         elif have_value is True and values[-1] == last_char:
             pass
 
+        # Test if this item do not end by the same symbol
         elif have_value is False and values[-1] != last_char:
             pass
 
@@ -134,7 +150,7 @@ def getopts_digest_available_options(getopts_options: dict[str, tuple[any, any]]
     option's aliases are coherent.
 
 
-     @param getopts_options : dict[str,tuple[any,any]] =>  A dictionary that follows one of the following structure :
+     @param getopts_options : dict[str, tuple[any, any]] =>  A dictionary that follows one of the following structure :
     @code
     {name: None}
     {tuple_of_name: None}
@@ -151,28 +167,30 @@ def getopts_digest_available_options(getopts_options: dict[str, tuple[any, any]]
     {tuple_of_name: (tuple_of_short_name, (default_value, cast))}
     {tuple_of_name: (short_name, (default_value, cast))}
     @endcode
-    @param dict_of_default_value : dict[str,any] = None => Facultative, A dictionary that will be filled using options's
+    @param dict_of_default_value : dict[str, any] = None => Facultative, A dictionary that will be filled using options's
     default values.
 
 
-    @return tuple[dict[str, tuple[any, any]], dict[str, str], dict[str, str], str, list[str]] =>
-    - option_dict : dict[str, tuple[any, any] => Contain each option "main_name" associated with theirs
-        default and cast options
-    - boolean_keys : dict[str, str] => Contain all options aliases related to option that can handle only two state
-    - complex_keys : dict[str, str] => Contain all options aliases related to option that can handle more than two state
-    - short_string : str => string that correspond to shortopts in  @ref getopt.getopt
-    - long_list : list[str] => list of string that correspond to longopts in @ref getopt.getopt
+     @return tuple[dict[str, tuple[any, any]], dict[str, str], dict[str, str], str, list[str]] =>
+    - option_dict : dict[str, tuple[any, any] => Contain each option's "main_name" associated with theirs  default and
+        cast options. The "main_name" is the named that will be used into the dictionary
+        returned by @ref getopts_parser.
+    - boolean_keys : dict[str, str] => Contain all options aliases related to options that can handle only two state
+    - complex_keys : dict[str, str] => Contain all options aliases related to options that can handle more than two state
+    - short_string : str => string that correspond to "shortopts" in  @ref getopt.getopt
+    - long_list : list[str] => list of string that correspond to "longopts" in @ref getopt.getopt
 
     """
-
+    # Internal variables
     boolean_keys = {}
     complex_keys = {}
     short_string = ""
     long_list = []
     option_dict = {}
 
+    # Main loop
     for long_keys, short_keys_and_defaults in getopts_options.items():
-        # Digest long keys
+        # --- Digest long keys ---
         if isinstance(long_keys, tuple):
             if not long_keys:
                 continue
@@ -181,13 +199,15 @@ def getopts_digest_available_options(getopts_options: dict[str, tuple[any, any]]
             long_keys = list(set(long_keys))
         
         else:
+            # Assure that long_keys are contained into a list
             main_key = long_keys
             long_keys = [long_keys]
 
+        # Update long_list and long_keys
         long_list.extend(long_keys)
         long_keys = ["--" + str(keys) for keys in long_keys]   # Add suffix
 
-        # Split short keys and defaults
+        # --- Split short keys and defaults ---
         if short_keys_and_defaults is None:
             short_keys = None
             defaults = None
@@ -196,7 +216,7 @@ def getopts_digest_available_options(getopts_options: dict[str, tuple[any, any]]
             # Unpack short_keys_and_defaults
             short_keys, defaults = short_keys_and_defaults
 
-        # Digest short keys
+        # --- Digest short keys ---
         if short_keys is None:
             short_keys = []
 
@@ -209,8 +229,8 @@ def getopts_digest_available_options(getopts_options: dict[str, tuple[any, any]]
 
         short_string += "".join(short_keys)
 
-        # add suffix
-        temp = []  # Add suffix
+        # --- add suffix to short_string ---
+        temp = []
         for keys in short_keys:
             if not keys:
                 continue
@@ -220,10 +240,9 @@ def getopts_digest_available_options(getopts_options: dict[str, tuple[any, any]]
             temp.append("-" + keys)
 
         short_keys = temp
-
         del temp
 
-        # Check for incoherent options
+        # --- Check for incoherent options ---
         try:
             long_keys_ask_for_values = getopts_digester_check_item_endings(long_keys, last_char="=")
             short_keys_ask_for_values = getopts_digester_check_item_endings(short_keys, last_char=":")
@@ -236,7 +255,7 @@ def getopts_digest_available_options(getopts_options: dict[str, tuple[any, any]]
             raise GetoptsDigestionError(msg=f"Incoherent options in the getopts' dict (key='{long_keys}', "
                                             f"values={short_keys}) :\n" + str(ValEr))
 
-        # Digest default
+        # --- Digest default ----
         if defaults is None or defaults == tuple():
             if long_keys_ask_for_values:
                 defaults = (None, None)
@@ -273,22 +292,24 @@ def getopts_digest_available_options(getopts_options: dict[str, tuple[any, any]]
 def getopts_retrieve_options(argv: list[str], short_string: str, long_list: list[str], main_options: list[str]) \
         -> list[tuple[str, str]]:
     """!
-    @brief Use a list of string from a command-line to extract options and theirs values.
+    @brief Use a list of string from a command-line (e.g. sys.argv[1:]) to extract selected options and theirs
+    associated values.
 
     @param argv : list[str] => A list of string (Same format as sys.argv[1:])
     @param short_string : str => string that correspond to shortopts in  @ref getopt.getopt
     @param long_list : list[str] => list of string that correspond to longopts in @ref getopt.getopt
     @param main_options : list[str] => An ordered list of all options. Is used to determine the
-    correspondence between arguments and parameters
+    correspondence between arguments and parameters.
 
-    @return list[Tuple[str, str]] => A list composed of tuple that contain option and their values.
-
+    @return list[Tuple[str, str]] => A list composed of tuple that contain all selected options and associated with
+    their values.
     """
+
     try:
         # Obtain values from argv
         opts, unparsed = getopt.getopt(argv, short_string, long_list)
 
-        # When argument are passed
+        # When argument are passed, all items end in unparsed.
         if len(opts) == 0 and len(unparsed) >= 1:
             i = 0
 
@@ -297,6 +318,8 @@ def getopts_retrieve_options(argv: list[str], short_string: str, long_list: list
             while (i < len(unparsed) and i < len(main_options) and main_options[i][-1] == "="
                    and unparsed[i * 2][0] != "-"):
                 #       |--- Not an option ---|
+                # =>  main_options[i][-1] be an option that accept a value and
+                # unparsed[i * 2][0] should not be a known option
 
                 unparsed.insert(i * 2, "--" + main_options[i][:-1])
                 i += 1
@@ -324,11 +347,10 @@ def getopts_retrieve_options(argv: list[str], short_string: str, long_list: list
 def getopts_parser(argv: list[str] or str, getopts_options: dict[str, tuple[any, any]],
                    *mandatory: str, fill_with_default_values=True) -> dict:
     """!
-    @brief Internal version of @ref getopts. You can use this function if you don't need @ref getopts ' overcoat.
-    (Display help message and error handling)
+    @brief Internal version of @ref getopts. You can use this function if you don't need @ref getopts ' overcoat. (help message display and error handling)
 
+    This docstring is a lighten version of @ref getopts 's docstring.
     @see getopts
-
 
     @param argv : list[str] or str => List of argument (strings). Usually sys.argv[1:] or str command line.
     @param getopts_options : dict[str, tuple[any, any]] => A dictionary that contain options.
@@ -336,7 +358,6 @@ def getopts_parser(argv: list[str] or str, getopts_options: dict[str, tuple[any,
     @param fill_with_default_values = True => Every unused options are added to the final dict using defaults values
 
     @return dict => A dictionary that contain options.
-
     """
     final_values = {}
     mandatory = set(mandatory)
@@ -410,12 +431,19 @@ def getopts(argv: list[str] or str, getopts_options: dict[str or tuple, None or 
             raise_errors=False, help_options: str or tuple[str] = ("help", )) -> dict[str, any] or int:
     """!
     @brief Directly extract options from a command line into a dict. All option's values are cast according to a
-    dictionary @p getopts_options which specifies options short and long names, their aliases and their type and
-    their default value.
+     dictionary @getopts_options which specifies option's short name (-h), option's long names (--help),
+     option's aliases (--HELP), option's type (str, int ...) and option's default value.
 
     This function use @ref getopt.getopt.
 
-    @param argv : list[str] or str => [description]
+    You can find some usage example in @ref ./test_getopts_parser.py
+
+    @param argv : list[str] or str =>
+    - A command line e.g. :
+        @code "Argument1 Argument2 --Option1 value --Option2 -abc" @endcode
+    - list of string (such as sys.argv[1:]) e.g. :
+        @code ["Argument1", "Argument2",  "--Option1", "value", "--Option2", "-abc"] @endcode
+
     @param getopts_options : dict[str, tuple[any, any]] =>
     - Structure for this dict :
     @code
@@ -436,39 +464,68 @@ def getopts(argv: list[str] or str, getopts_options: dict[str or tuple, None or 
 
     @endcode
     - Option that accept values should have a "=" at the end of each name and a ":" at the end of each short_name.
-    - Option that require a value : (e.g. --file path) :
-        - default_value can be of any type, if callable the result of the function is used
-        - The cast can be any function. if None, nothing happen
+    - Option that require a value : (e.g. --file path)
+        - default_value can be of any type, if callable the result of the function is used.
+        - The cast can be any function. if None, nothing happen.
 
     - Option that does not require any value : (e.g. --help) :
         - The default value is False
         - The "on" value is True
-        - If you specie a "cast" it will be used as the "on" value
+        - If you specify a "cast" it will be used as the "on" value
 
-    @note When an option has multiple names, the first one in the tuple is selected as the "main_name". The "main_name"
-    is the key used inside the returned dict.
+    @note When an option has multiple long names, the first one in the tuple is selected as the "main_name".
+    The "main_name" is the key used inside the returned dict.
     @note short_names can be composed by only one character (plus ":" if needed)
     @warning do not use "-" in your options names
 
-    @param *mandatory : str => a list of options whose value must be entered
+    @param *mandatory : str => a list of options whose value must be entered.
     @param help_message : str = None => A message displayed when an error is encountered or when "help" is triggered.
-    @param fill_with_default_values = True => When True, the returned dict contain all options
+    @param fill_with_default_values = True => When True, the returned dict contains all options
     @param raise_errors = False => Do caught errors are raised ?
     @param help_options : str or tuple[str] = ("help", ) => A tuple of option name that trigger @p help_message.
-    Those option are always removed from the returned dictionary.
+    Those options are always removed from the returned dictionary.
 
     @return dict[str, any] or int =>
         -  dict[str, any] A dictionary that contain values related to options triggered by the command-line.
         - Only when an error occur and @p raise_errors is False or when help message is displayed.
-            - 1 = An errors been caught
+            - 1 = An error has been caught
             - 2 = help message was required.
-    """
 
+    Example :
+    @code
+      options_ = {
+        'Alpha=': ("a:", (None, int)),
+        'Beta=': ("b:", (None, list)),
+        'Gamma': ("g", (True, False)),
+        'Delta=': None,
+        'Epsilon=': (None, ("Star", None)),
+        'Zeta': ("Z", None),
+        'Eta': None,
+        'Theta': None,
+        'Iota': None,
+        'Kappa': None,
+        'Lambda': None,
+        'Mu': None,
+    }
+
+    val = getopts("1 --Eta --Iota --Beta Test2 -z", options_, fill_with_default_values=True)
+
+    # We have :
+    # val["Alpha"] == 1
+    # val["Beta"] == ["T", "e", "s", "t", "2"]
+    # val["Gamma"] is True
+    # val["Epsilon"] == "Star"
+    # val["Zeta"] is True"
+    # val["Mu"] is False"
+    @endcode
+    """
+    # Catch errors raised by getopts_parser
     try:
         vals = getopts_parser(argv, getopts_options, *mandatory,
                               fill_with_default_values=fill_with_default_values)
 
     except getopt.GetoptError as E:
+        # An error occurred
         print("An error occured during the parsing of your command-line arguments :"
               f"\n{E.msg}")
 
@@ -480,9 +537,11 @@ def getopts(argv: list[str] or str, getopts_options: dict[str or tuple, None or 
 
         return 1
 
+    # Searching for help options :
     if not isinstance(help_options, tuple):
         help_options = [help_options]
 
+    # Do a help message should be displayed ( => Do an option in help_opt is inside vals and vals[options] is True)
     for help_opt in help_options:
         if help_opt not in vals:
             continue
