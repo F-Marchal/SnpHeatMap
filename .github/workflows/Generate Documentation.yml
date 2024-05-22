@@ -89,12 +89,15 @@ jobs:
         mv "$(pwd)/doc/latex/refman.pdf" "$(pwd)/doc/documentation.pdf"  
         tree
         
-    - name: Stage changes
+    - name: Add documentation.pdf
       run: | 
         git add "$(pwd)/doc/documentation.pdf"
         
-        git rm "$(pwd)/doc/"
-        
+    - name: Rm old html documentation
+        git rm -r"$(pwd)/doc/html/"
+
+    - name: Add html documentation
+      run: | 
         mv "$(pwd)/doc/html/*" "$(pwd)/doc/"
         git add "$(pwd)/doc/html/*"
 
