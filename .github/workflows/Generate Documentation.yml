@@ -92,6 +92,10 @@ jobs:
     - name: Stage changes
       run: | 
         git add "$(pwd)/doc/documentation.pdf"
+        
+        git rm "$(pwd)/doc/"
+        
+        mv "$(pwd)/doc/html/*" "$(pwd)/doc/"
         git add "$(pwd)/doc/html/*"
 
     - name: Amend last commit
