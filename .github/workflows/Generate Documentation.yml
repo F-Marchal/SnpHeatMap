@@ -95,7 +95,7 @@ jobs:
         
     - name: Rm old html documentation
       run: |
-        git rm -r"$(pwd)/doc/html/"
+        git rm -r "$(pwd)/doc/html/"
 
     - name: Add html documentation
       run: | 
