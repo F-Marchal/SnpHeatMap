@@ -1,0 +1,21 @@
+{
+    "data/Ae_bicornis_dNdSpiNpiS_Fis_output":       "Ae_bicornis",
+    "data/Ae_caudata_dNdSpiNpiS_Fis_output":        "Ae_caudata",
+    "data/Ae_comosa_dNdSpiNpiS_Fis_output":         "Ae_comosa",
+    "data/Ae_longissima_dNdSpiNpiS_Fis_output":      "Ae_longissima",
+    "data/Ae_mutica_dNdSpiNpiS_Fis_output":         "Ae_mutica",
+    "data/Ae_searsii_dNdSpiNpiS_Fis_output":        "Ae_searsii",
+    "data/Ae_sharonensis_dNdSpiNpiS_Fis_output":    "Ae_sharonensis",
+    "data/Ae_speltoides_dNdSpiNpiS_Fis_output":     "Ae_speltoides",
+    "data/Ae_tauschii_dNdSpiNpiS_Fis_1allele_output": "Ae_tauschii",
+    "data/Ae_umbellulata_dNdSpiNpiS_Fis_output":    "Ae_umbellulata",
+    "data/Ae_uniaristata_dNdSpiNpiS_Fis_output":    "Ae_uniaristata",
+    "data/E_bonaepartis_dNdSpiNpiS_output":         "E_bonaepartis",
+    "data/H_bulbosum_dNdSpiNpiS_output":            "H_bulbosum",
+    "data/H_vulgare_dNdSpiNpiS_Fis_output":         "H_vulgare",
+    "data/S_strictum_dNdSpiNpiS_Fis_output":        "S_strictum",
+    "data/S_vavilovii_dNdSpiNpiS_output":           "S_vavilovii",
+    "data/T_caputmedusae_dNdSpiNpiS_output":        "T_caputmedusae",
+    "data/T_monococcum_dNdSpiNpiS_Fis_1allele_output": "T_monococcum",
+    "data/T_urartu_dNdSpiNpiS_Fis_1allele_output": "T_urartu"
+}
