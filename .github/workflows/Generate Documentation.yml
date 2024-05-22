@@ -90,16 +90,16 @@ jobs:
         tree
         
     - name: Stage changes
-      run: git add $(pwd)/doc/documentation.pdf
+      run: git add "$(pwd)/doc/documentation.pdf"
 
     - name: Amend last commit
       run: | 
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
-        message=echo "$(git log)
+        message="$(git log)
         Auto-document files added after build [skip ci]"
         
-        git commit -m  --all
+        git commit -m "$message"
         
     - name: Commit and Push Changes
       uses: ad-m/github-push-action@v0.6.0
