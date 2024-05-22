@@ -69,7 +69,11 @@ jobs:
     
     - name: Checkout repository
       uses: actions/checkout@v2
-        
+    
+    - name: Rm old html documentation
+      run: |
+        git rm -r "$(pwd)/doc/html/"
+      
     - name: Generate Doxygen documentation
       run: | 
         INITIAL_FOLDER=$(pwd)
@@ -79,28 +83,26 @@ jobs:
 
     - name: Build LaTeX PDF
       run: | 
-        
         make -C "$(pwd)/doc/latex"
         
     - name: Move PDF to doc directory
       run: |
-        tree
-        echo "$(pwd)/doc/latex/refman.pdf --> $(pwd)/doc/documentation.pdf"  
         mv "$(pwd)/doc/latex/refman.pdf" "$(pwd)/doc/documentation.pdf"  
-        tree
-        
+
     - name: Add documentation.pdf
       run: | 
         git add "$(pwd)/doc/documentation.pdf"
         
-    - name: Rm old html documentation
-      run: |
-        git rm -r "$(pwd)/doc/html/"
 
     - name: Add html documentation
       run: | 
-        mv "$(pwd)/doc/html/*" "$(pwd)/doc/"
+        INITIAL_FOLDER=$(pwd)
         git add "$(pwd)/doc/html/*"
+
+        cd "$INITIAL_FOLDER/doc/"
+        ln -rs "/doc/index.html" index.html
+
+        cd "$INITIAL_FOLDER"
 
     - name: Amend last commit
       run: | 
