@@ -96,7 +96,8 @@ jobs:
       run: | 
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
-        message="Auto-document files added after build [skip ci]
+        message="Auto-document files added after build 
+        -- [skip ci] --
         Previous log :
         $(git log)"
         
