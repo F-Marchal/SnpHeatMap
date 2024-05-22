@@ -90,7 +90,9 @@ jobs:
         tree
         
     - name: Stage changes
-      run: git add "$(pwd)/doc/documentation.pdf"
+      run: | 
+        git add "$(pwd)/doc/documentation.pdf"
+        git add "$(pwd)/doc/html/*"
 
     - name: Amend last commit
       run: | 
