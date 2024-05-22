@@ -94,15 +94,18 @@ jobs:
         git add "$(pwd)/doc/documentation.pdf"
         
 
-    - name: Add html documentation
+    - name: Add html link to documentation
       run: | 
         INITIAL_FOLDER=$(pwd)
-        git add "$(pwd)/doc/html/*"
-
         cd "$INITIAL_FOLDER/doc/"
         ln -rs "/doc/index.html" index.html
-
         cd "$INITIAL_FOLDER"
+        
+    - name: Add html documentation
+      run: | 
+        tree
+        git add "$(pwd)/doc/html/*"
+        git add "$(pwd)/doc/index.html"
 
     - name: Amend last commit
       run: | 
