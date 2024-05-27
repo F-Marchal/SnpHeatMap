@@ -80,7 +80,7 @@ jobs:
     - name: Build LaTeX PDF
       run: | 
         echo $DOC_FOLDER
-        make -C "$(pwd)$DOC_FOLDER/latex"
+        make -C "$(pwd)$(DOC_FOLDER)/latex"
         
     - name: Move PDF to doc directory
       run: |
