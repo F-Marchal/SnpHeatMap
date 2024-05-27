@@ -79,8 +79,10 @@ jobs:
 
     - name: Build LaTeX PDF
       run: | 
-        echo $DOC_FOLDER
-        make -C "$(pwd)$(DOC_FOLDER)/latex"
+        echo $(pwd)$DOC_FOLDER
+        path=$(pwd)$DOC_FOLDER
+        echo $path
+        make -C $path/latex"
         
     - name: Move PDF to doc directory
       run: |
