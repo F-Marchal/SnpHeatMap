@@ -61,7 +61,7 @@ def test_compile_gene_snp():
         'gene7': 3,
         'gene8': 2,
         'gene9': 1
-    }
+    }.items()
 
     genes1_a = {
         'gene0': 0,
@@ -69,14 +69,14 @@ def test_compile_gene_snp():
         'gene2': 4,
         'gene3': 4,
         'gene4': 1,
-    }
+    }.items()
     genes1_b = {
         'gene5': 4,
         'gene6': 2,
         'gene7': 3,
         'gene8': 2,
         'gene9': 1
-    }
+    }.items()
 
     genes1_b_bis = {
         'gene0': 0,
@@ -84,7 +84,7 @@ def test_compile_gene_snp():
         'gene2': 1,
         'gene3': 4,
         'gene4': 3,
-    }
+    }.items()
 
     genes_c_bis = {
         'gene0': 0,
@@ -92,7 +92,7 @@ def test_compile_gene_snp():
         'gene2': 1,
         'gene3': 4,
         'gene4': 3,
-    }
+    }.items()
 
     none_result = {0: {'None': 1}, 3: {'None': 2}, 4: {'None': 3}, 1: {'None': 2}, 2: {'None': 2}}
     john_smith_result = {0: {'John Smith': 1}, 3: {'John Smith': 2}, 4: {'John Smith': 3}, 1: {'John Smith': 2}, 2:

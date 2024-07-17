@@ -193,3 +193,6 @@ A heatmap that show the proportion of gene that have at least certain number of 
 ![Example Image](output/Examples/Examples_Heatmap_global.png)  
 
 
+# NOTE FOR LATER
+Since the 1.1.0, the parameter `--name_column` is almost useless. The code should be reworked to 
+remove any usage of this option. 
