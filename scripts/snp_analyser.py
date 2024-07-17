@@ -542,7 +542,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                          png=f"{c_heat_png}_{all_species[i]}" if c_heat_png else None,
                          tsv=f"{c_heat_tsv}_{all_species[i]}" if c_heat_tsv else None,
                          svg=f"{c_heat_svg}_{all_species[i]}" if c_heat_svg else None,
-                         contain_number=show_values)
+                         contain_number=show_values,
+                         y_max_value = max_cumulative_value)
 
     if global_heatmap:
         make_heatmap(data, y_legend=all_species, x_legend=x_legend,
@@ -553,7 +554,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                      png=heat_png + "_global" if heat_png else None,
                      tsv=heat_tsv + "_global" if heat_tsv else None,
                      svg=heat_svg + "_global" if heat_svg else None,
-                     contain_number=show_values)
+                     contain_number=show_values,
+                     y_max_value = max_cumulative_value)
 
     return 0
 

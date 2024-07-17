@@ -6,6 +6,8 @@ It's a toolbox for scripts/snp_analyser.py
 
 try:
     import matplotlib.pyplot as plt
+    from matplotlib.colors import Normalize
+    from matplotlib.cm import ScalarMappable
 
 except ModuleNotFoundError as E:
     print(f"Module not found : {E}\n"
@@ -297,8 +299,9 @@ def make_heatmap(data: list[list[int]],
                  title: str = None, xlabel: str = None, ylabel: str = None,
                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                  erase_last_plt: bool = True, contain_number: int = None,
-                 test_color: str = "#a0a0a0", cmap: str = "jet",
-                ):
+                 uniq_color: str = None, cmap: str = "jet",
+                 y_max_value: int = None,
+                 ):
     """!
     @brief Create a heatmap using a bunch of argument.
     This function is made to assure a correct looking legend when used for snp.
@@ -317,8 +320,9 @@ def make_heatmap(data: list[list[int]],
     @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot memory
     @param contain_number : int = None => If greater or equal to 0, all cells will contain theirs values. if lower than 0,
     text in cell in automatically determined. If None, nothing happen.
-    @param test_color : str = #a0a0a0 => HTML color code for text inside cells
+    @param uniq_color : str = #a0a0a0 => HTML color code for text inside cells
         @note Only when contain_number is True
+    @param y_max_value : int = None => The y-axis will stop at this value
     @param cmap : str = jet => Color mod. supported values are 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG',
     'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r',
     'Grays', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r',
@@ -353,7 +357,9 @@ def make_heatmap(data: list[list[int]],
     fig_size = (num_cols + 1, max(num_rows + 1, 4))
 
     plt.figure(figsize=fig_size)
-    plt.imshow(data, cmap=cmap, interpolation='nearest', vmin=1)
+    plt.imshow(data, cmap=cmap, interpolation='nearest', vmin=1, vmax=y_max_value)
+    cmap_obj = plt.get_cmap(cmap)
+    norm_obj = Normalize(vmin=1, vmax=y_max_value)
 
     # Add ticks
     if x_legend:
@@ -413,7 +419,17 @@ def make_heatmap(data: list[list[int]],
                 else:
                     raise ValueError("Too many snp : " + str(data[i][j]))
 
+                if uniq_color is None:
+                    rgb = cmap_obj(norm_obj(data[i][j]))[:3]  # Get RGB values
+                    brightness = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+                    color = 'white' if brightness < 0.5 else 'black'
+
+                else:
+                    color = uniq_color
+
                 # Place text
-                plt.text(j, i, f'{str_data}', ha='center', va='center', color=test_color, fontsize=font_size)
+                plt.text(j, i, f'{str_data}', ha='center', va='center', color=color, fontsize=font_size)
+
+
 
     chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
