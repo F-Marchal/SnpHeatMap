@@ -140,7 +140,7 @@ def filter_integer_greater_or_equal_to_0_ignore_0(key: str or int, dictionary: d
     return True
 
 
-def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[str, int]] = None,
+def compile_gene_snp(genes_snp: iter, dict_of_number: dict[int, dict[str, int]] = None,
                      group: str = "None") -> dict[int, dict[str, int]]:
     """!
     @brief Extract the number of snp of all genes contained in @p genes_snp (snp = @p genes_snp 's values).
@@ -148,8 +148,8 @@ def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[s
     of all keys (i.e. snp number). This dict contain the @p group (key) and the number of occurrences of this
     snp number for this key.
 
-    @param genes_snp : dict[str,any] => A dictionary from @ref extract_data_from_table.
-        e.g. {gene_1: number_of_snp_in_gene_1} =>  @code {"gene1": 3}  @endcode
+    @param genes_snp : iterable => A generator from @ref extract_data_from_table.
+        e.g. (number_of_snp_in_gene_1, ) =>  @code (3, 5, 3)  @endcode
         @note Values (number of snp) inside this dict are trans typed into integers.
     @param dict_of_number : dict[int, dict[str,int]] = None.
         A dict with the same structure as dictionaries returned by this function.
@@ -164,7 +164,7 @@ def compile_gene_snp(genes_snp: dict[str, any], dict_of_number: dict[int, dict[s
     """
     dict_of_number = {} if dict_of_number is None else dict_of_number
 
-    for _, snp_count in genes_snp.items():
+    for _, snp_count in genes_snp:
         snp_count = int(snp_count)
 
         # Add this 'snp_count' to dict_of_number

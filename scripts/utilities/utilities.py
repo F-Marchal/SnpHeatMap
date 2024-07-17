@@ -169,12 +169,11 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
                 - If it returns False: this line is ignored.
                 - Else: The returned value is used (instead of the content of the column @p value).
     @note filter_ is called one time per line.
-    @return A dictionary: {values in the column @p key (values that do not pass @p filter_ are ignored): values in the
-    column @p value OR value returned by @p filter_}
+    @return A generator: (values in the column @p key (values that do not pass @p filter_ are ignored), values in the
+    column @p value OR value returned by @p filter_)
     """
     # Open file
     flux = open(path, "r", encoding="UTF-8")
-    data = {}
 
     # Researched keys and values should be contained inside the legend.
     if legend is not None and (key not in legend or value not in legend):
@@ -218,16 +217,16 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
 
         if func_result is None or func_result is True:
             # Save  parsed_line[value]
-            data[parsed_line[key]] = parsed_line[value]
+            yield key, parsed_line[value]
 
         else:
             # Save  func_result
-            data[parsed_line[key]] = func_result
+            yield key, func_result
 
     # Close file
     flux.close()
 
-    return data
+
 
 
 def make_bar_char(data: list[int],
