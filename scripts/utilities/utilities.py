@@ -88,7 +88,7 @@ def export_list_in_tsv_as_rows(path: str, *rows, file_mode="w", encoding="UTF-8"
 
 
 def chart_export(data: list[list[int]], show: bool = False, png: str = None, tsv: str = None, svg: str = None,
-                 x_legend: list = None, y_legend: list = None):
+                 x_legend: list = None, y_legend: list = None, transparent: bool = True):
     """!
     @brief Export the current chart.
 
@@ -104,15 +104,16 @@ def chart_export(data: list[list[int]], show: bool = False, png: str = None, tsv
     (@ref export_list_in_tsv_as_rows)
     @param x_legend : list = None => When @p tsv is not none:  A list of item to be display in the first line
     (@ref export_list_in_tsv_as_rows)
+     @param transparent : bool = True => Chart are exported with a transparent background
 
     """
     # Png export
     if png is not None:
-        plt.savefig(png + ".png", format='png')
+        plt.savefig(png + ".png", format='png', transparent=transparent)
 
     # svg export (Scalable Vector Graphic )
     if svg is not None:
-        plt.savefig(svg + ".svg", format='svg')
+        plt.savefig(svg + ".svg", format='svg', transparent=transparent)
 
     # Export tsv (flat file)
     if tsv is not None:
@@ -227,15 +228,15 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
     flux.close()
 
 
-
-
 def make_bar_char(data: list[int],
                   x_legend: list = None, x_legend_is_int: bool = True, y_legend_is_int: bool = True,
                   chart_name: str = None,
                   title: str = None, xlabel: str = None, ylabel: str = None,
                   show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                   erase_last_plt: bool = True,
-                  y_max_value: int = None):
+                  y_max_value: int = None,
+                  transparent: bool = True,
+                  ):
     """!
     @brief Create a @ref plt.bar using a bunch of argument.
     This function is made to assure a correct looking legend when used for snp.
@@ -255,6 +256,7 @@ def make_bar_char(data: list[int],
     @param svg : str = None => Give a path to export the current plot as svg
     @param y_max_value : int = None => The y-axis will stop at this value
     @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot display
+    @param transparent : bool = True => Chart is exported with a transparent background
     """
 
     # Clear last plot
@@ -290,7 +292,8 @@ def make_bar_char(data: list[int],
     plt.gcf().canvas.manager.set_window_title(title)
 
     # export chart
-    chart_export(data=[data], x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg, y_legend=[chart_name])
+    chart_export(data=[data], x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg, y_legend=[chart_name],
+                 transparent=transparent)
 
 
 def make_heatmap(data: list[list[int]],
@@ -299,7 +302,7 @@ def make_heatmap(data: list[list[int]],
                  show: bool = False, png: str = None, tsv: str = None, svg: str = None,
                  erase_last_plt: bool = True, contain_number: int = None,
                  uniq_color: str = None, cmap: str = "jet",
-                 y_max_value: int = None,
+                 y_max_value: int = None, transparent: bool = True,
                  ):
     """!
     @brief Create a heatmap using a bunch of argument.
@@ -322,6 +325,7 @@ def make_heatmap(data: list[list[int]],
     @param uniq_color : str = #a0a0a0 => HTML color code for text inside cells
         @note Only when contain_number is True
     @param y_max_value : int = None => The y-axis will stop at this value
+    @param transparent : bool = True => Chart is exported with a transparent background
     @param cmap : str = jet => Color mod. supported values are 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG',
     'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r',
     'Grays', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r',
@@ -429,6 +433,5 @@ def make_heatmap(data: list[list[int]],
                 # Place text
                 plt.text(j, i, f'{str_data}', ha='center', va='center', color=color, fontsize=font_size)
 
-
-
-    chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg)
+    chart_export(data=data, y_legend=y_legend, x_legend=x_legend, tsv=tsv, png=png, show=show, svg=svg,
+                 transparent=transparent)

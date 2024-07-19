@@ -164,10 +164,14 @@ text size in cell is automatically determined
 (can be ugly in the windows displayed by -d, but assure that the text is well sized in 
 png and svg). If unspecified, cells are empty.
 
-##### `--uniform_y` or `--uniform -y`
+##### `--uniform_y` or `-y`
 Uniformize all y-axis. All Quantitative chart and all Cumulative chart 
 will  have the same upper limit and the same scale on their y-axis.
 (Quantitative and Cumulative charts still have disjoint y-axis)
+
+##### `--transparent`
+Charts are exported with a transparent background.
+
 
 ## Example chart
 Charts generated using `python3 Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples --show_values -1`

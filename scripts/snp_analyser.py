@@ -90,7 +90,8 @@ __getopts__ = {
     "png":                      ("k", None),
     "show":                     ("d", None),
     "svg":                      ("v", None),
-    ("uniform_y", "uniform"):   ("y", None)
+    ("uniform_y", "uniform"):   ("y", None),
+    "transparent":              (None, (False, True)),
 
 }
 
@@ -98,7 +99,9 @@ __getopts__ = {
 def help_usage():
     option_list = ""
     for key, (short_key, _) in __getopts__.items():
-        if short_key[-1] != ":":
+        if short_key is None:
+            option_list += f'{key}, \t'
+        elif short_key[-1] != ":":
             option_list += f'{short_key} / {key}, \t'
         else:
             option_list += f'{short_key[:-1]} / {key}, \t'
@@ -305,7 +308,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
          global_heatmap: bool = True, quantitative_barchart: bool = False, cumulative_barchart: bool = False,
          cumulative_heatmap: bool = False,
          tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
-         sort_by_name: bool = True, uniform_y: bool = True,
+         sort_by_name: bool = True, uniform_y: bool = True, transparent : bool = True,
          show_values: int = -1) -> int:
     """!
     @brief Create a number of chart related to snp analysis.
@@ -348,6 +351,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     @param show_values : int = None => If greater or equal to 0, all cells will contain theirs values. if lower than 0,
     text in cell in automatically determined (can be ugly when show is True, but assure that the text is good in
     png and svg). If None, nothing happen.
+    @param transparent : bool = True => Chart are exported with a transparent background
 
     @return int => if greater than 0, an error occurred.
     - 1 job stopped by user
@@ -513,8 +517,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                           png=f"{q_bar_png}{line_name}" if q_bar_png else None,
                           tsv=f"{q_bar_tsv}{line_name}" if q_bar_tsv else None,
                           svg=f"{q_bar_svg}{line_name}" if q_bar_svg else None,
-                          y_max_value = max_quantitative_value
-                          )
+                          y_max_value = max_quantitative_value,
+                          transparent=transparent)
 
         # Replace the quantitative list by a cumulative list
         data[i] = generate_cumulative_list(data[i], reversed_=True)
@@ -529,7 +533,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                           png=f"{c_bar_png}{line_name}" if c_bar_png else None,
                           tsv=f"{c_bar_tsv}{line_name}" if c_bar_tsv else None,
                           svg=f"{c_bar_svg}{line_name}" if c_bar_svg else None,
-                          y_max_value = max_cumulative_value)
+                          y_max_value = max_cumulative_value,
+                          transparent=transparent)
 
     # Heatmap generation
     if cumulative_heatmap:
@@ -543,7 +548,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                          tsv=f"{c_heat_tsv}_{all_species[i]}" if c_heat_tsv else None,
                          svg=f"{c_heat_svg}_{all_species[i]}" if c_heat_svg else None,
                          contain_number=show_values,
-                         y_max_value = max_cumulative_value)
+                         y_max_value = max_cumulative_value,
+                         transparent=transparent)
 
     if global_heatmap:
         make_heatmap(data, y_legend=all_species, x_legend=x_legend,
@@ -555,7 +561,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                      tsv=heat_tsv + "_global" if heat_tsv else None,
                      svg=heat_svg + "_global" if heat_svg else None,
                      contain_number=show_values,
-                     y_max_value = max_cumulative_value)
+                     y_max_value = max_cumulative_value,
+                     transparent=transparent)
 
     return 0
 
