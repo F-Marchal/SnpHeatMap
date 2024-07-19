@@ -172,6 +172,8 @@ will  have the same upper limit and the same scale on their y-axis.
 ##### `--transparent`
 Charts are exported with a transparent background.
 
+#### `--start_at_0`
+Charts start at  snp, this mean that the number of genes is shown in the first cell / colm.
 
 ## Example chart
 Charts generated using `python3 Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples --show_values -1`

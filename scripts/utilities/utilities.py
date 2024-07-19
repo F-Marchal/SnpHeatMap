@@ -236,6 +236,7 @@ def make_bar_char(data: list[int],
                   erase_last_plt: bool = True,
                   y_max_value: int = None,
                   transparent: bool = True,
+                  start_x_value: int = 0
                   ):
     """!
     @brief Create a @ref plt.bar using a bunch of argument.
@@ -257,6 +258,8 @@ def make_bar_char(data: list[int],
     @param y_max_value : int = None => The y-axis will stop at this value
     @param erase_last_plt : bool = True => If True, last plot is removed from @ref matplotlib.pyplot display
     @param transparent : bool = True => Chart is exported with a transparent background
+    @param start_x_value : int = 0 => When x_legend is not given, the legend is processed automatically. This option
+    allow you to select the first value in the x-axis.
     """
 
     # Clear last plot
@@ -275,7 +278,7 @@ def make_bar_char(data: list[int],
         plt.xticks(range(len(data)), x_legend)
 
     else:
-        x_legend = list(range(1, len(data) + 1))
+        x_legend = list(range(start_x_value, len(data) + start_x_value))
         plt.bar(x_legend, data, color='skyblue')
 
     # Assure that y-axis and x-axis use display only integer. (Just some plt magic)
@@ -303,7 +306,7 @@ def make_heatmap(data: list[list[int]],
                  erase_last_plt: bool = True, contain_number: int = None,
                  uniq_color: str = None, cmap: str = "jet",
                  y_max_value: int = None, transparent: bool = True,
-                 ):
+                 start_x_value: int = 0):
     """!
     @brief Create a heatmap using a bunch of argument.
     This function is made to assure a correct looking legend when used for snp.
@@ -326,6 +329,8 @@ def make_heatmap(data: list[list[int]],
         @note Only when contain_number is True
     @param y_max_value : int = None => The y-axis will stop at this value
     @param transparent : bool = True => Chart is exported with a transparent background
+    @param start_x_value : int = 0 => When x_legend is not given, the legend is processed automatically. This option
+    allow you to select the first value in the x axis.
     @param cmap : str = jet => Color mod. supported values are 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG',
     'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r',
     'Grays', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r',
@@ -366,7 +371,7 @@ def make_heatmap(data: list[list[int]],
 
     # Add ticks
     if x_legend:
-        plt.xticks(range(1, num_cols+1), x_legend)
+        plt.xticks(range(start_x_value, num_cols+start_x_value), x_legend)
     else:
         x_legend = [str(i) for i in range(1, num_cols + 1)]
         plt.xticks(range(num_cols), x_legend)
@@ -383,6 +388,7 @@ def make_heatmap(data: list[list[int]],
 
     # Add color bar
     cbar = plt.colorbar()
+    cbar.set_label('Number of genes')
     cbar.set_label('Number of genes')
     plt.gca().set_aspect('equal', adjustable='box')
     if contain_number is not None:

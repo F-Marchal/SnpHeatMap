@@ -92,6 +92,7 @@ __getopts__ = {
     "svg":                      ("v", None),
     ("uniform_y", "uniform"):   ("y", None),
     "transparent":              (None, (False, True)),
+    "start_at_0":               (None, (False, True)),
 
 }
 
@@ -112,13 +113,13 @@ def help_usage():
             f"\nSee README.md for more details\n")
 
 
-def filter_integer_greater_or_equal_to_0_ignore_0(key: str or int, dictionary: dict = None) -> bool:
+def filter_integer_greater_or_equal_to_0(key: str or int, dictionary: dict = None, include_0: bool = True) -> bool:
     """!
     @brief Test if the value in front of the key @p key inside @p dictionary can be cast into an integer bigger than 0.
 
     Meant to be used inside  @ref extract_data_from_table as a "filter_" using a lambda.
-        - value == 0 : Line is ignored
         - value > 0 : Line is kept
+        - value == 0 : if ignore_0 is False
         - Value < 0 : Error is raised
 
     @warning does not support "1.0 nor "1,0" format
@@ -126,9 +127,10 @@ def filter_integer_greater_or_equal_to_0_ignore_0(key: str or int, dictionary: d
     @param key : str => A key contained by @p dictionary.
     @param dictionary : dict = None => A dictionary that contain @p key. If None, the function will assume that
     @code dictionary = {key: key} @endcode
+    @param include_0 : bool => Do 0 is accepted by the filter
 
     @return bool => True : Yes
-                    False : value equal to 0
+                    False : value equal to 0 when ignore_0 is True
     @raise ValueError when the value is an integer lower than 0
 
     """
@@ -137,10 +139,27 @@ def filter_integer_greater_or_equal_to_0_ignore_0(key: str or int, dictionary: d
 
     value = int(dictionary[key])
     if value == 0:
-        return False
+        return include_0
     elif value < 0:
         raise ValueError(f"Integer lower or equal to 0 : {value}")
     return True
+
+
+def filter_integer_greater_or_equal_to_0_ignore_0(key: str or int, dictionary: dict = None):
+    """
+    @brief Test if the value in front of the key @p key inside @p dictionary can be cast into an integer bigger than 0.
+    See @ref  filter_integer_greater_or_equal_to_0.
+
+    @param key : str => A key contained by @p dictionary.
+    @param dictionary : dict = None => A dictionary that contain @p key. If None, the function will assume that
+    @code dictionary = {key: key} @endcod
+
+     @return bool => True : Yes
+                    False : value equal to 0
+    @raise ValueError when the value is an integer lower than 0
+
+    """
+    return filter_integer_greater_or_equal_to_0(key, dictionary, include_0=False)
 
 
 def compile_gene_snp(genes_snp: iter, dict_of_number: dict[int, dict[str, int]] = None,
@@ -162,7 +181,7 @@ def compile_gene_snp(genes_snp: iter, dict_of_number: dict[int, dict[str, int]] 
     occurrences @code {number_of_snp_1 : {group1: number_of_occurrences_of_number_of_snp_1_in_this_group} @endcode
 
     @warning values @p genes_snp are cast into integer. Also, there is no verification made to see if the values are
-    positive. We assume that data has been filtered using @ref filter_integer_greater_or_equal_to_0_ignore_0 in
+    positive. We assume that data has been filtered using @ref filter_integer_greater_or_equal_to_0 in
     @ref extract_data_from_table
     """
     dict_of_number = {} if dict_of_number is None else dict_of_number
@@ -184,7 +203,8 @@ def compile_gene_snp(genes_snp: iter, dict_of_number: dict[int, dict[str, int]] 
 
 
 def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *groups: str,
-                     simplified: bool = True, max_length: int = None) -> (list[list[int]], list[int]):
+                     simplified: bool = True, max_length: int = None,
+                     start_value: int = 1) -> (list[list[int]], list[int]):
     """!
     @brief Use a compiled dict from @ref compile_gene_snp to create a matrix of value.
     Each lines represent one group (@p groups & @p group).
@@ -215,6 +235,7 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
             - If True: @code ([[5, 3, 0, 1], [0, 4, 2, 1]], [1, 2, 4])  @endcode
     @param max_length : int = None => Limit the length of each lines of the matrix. should be greater than 0. If not,
     max_length is ignored.
+    @param start_value: int = 1 => First value of the matrix.
 
     @return (list[list[int]], list[int]) => Return a matrix and a list. Each lines of the matrix represent the
     number of genes of a species (group) that contain n snp : If the position 1 of a line is equal to 4, there is
@@ -230,7 +251,7 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
     # Variables
     groups = [group, *groups]                       # Merge @p group and @p groups
     data = [list() for _ in range(0, len(groups))]  # Data matrix
-    last_x_value = 0                                # Remember the last value
+    last_x_value = start_value - 1                  # Remember the last value
     sorted_x_values = sorted(compiled_dict)         # Snp size from compiled_dict sorted y size
 
     # Apply the @p max_length by reducing the size of "sorted_x_values"
@@ -264,7 +285,7 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
         return data, sorted_x_values
 
     else:
-        return data, list(range(1, sorted_x_values[-1] + 1))
+        return data, list(range(start_value, sorted_x_values[-1] + 1))
 
 
 def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed_=False) -> list[int]:
@@ -309,7 +330,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
          cumulative_heatmap: bool = False,
          tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
          sort_by_name: bool = True, uniform_y: bool = True, transparent : bool = True,
-         show_values: int = -1) -> int:
+         show_values: int = -1,
+         start_at_0: bool = True) -> int:
     """!
     @brief Create a number of chart related to snp analysis.
 
@@ -352,6 +374,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     text in cell in automatically determined (can be ugly when show is True, but assure that the text is good in
     png and svg). If None, nothing happen.
     @param transparent : bool = True => Chart are exported with a transparent background
+    @param start_at_0 : bool = True => Charts shows the number of genes in the first column / cell
 
     @return int => if greater than 0, an error occurred.
     - 1 job stopped by user
@@ -455,7 +478,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         try:
             files_dict = extract_data_from_table(f"{file_path_prefix}{files}", key=name_column, value=snp_column,
                                                  filter_=lambda _, val, dict_:
-                                                            filter_integer_greater_or_equal_to_0_ignore_0(val, dict_),
+                                                           filter_integer_greater_or_equal_to_0(val, dict_, start_at_0),
                                                  # "_" in lambda is mendatory due to how extract_data_from_table works.
                                                  separator=file_separator)
         except FilterError as E:
@@ -477,10 +500,13 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         all_species.sort()
 
     # ---- ---- Matrix and chart generation ---- ----
+    start_x_value = 0 if start_at_0 else 1
+
     if not all_species:
         return 4
 
-    data, x_legend = make_data_matrix(all_snp, *all_species, simplified=simplified, max_length=max_length)
+    data, x_legend = make_data_matrix(all_snp, *all_species, simplified=simplified, max_length=max_length,
+                                      start_value=start_x_value)
 
     # Uniformize all y axis
     if uniform_y:
@@ -518,7 +544,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                           tsv=f"{q_bar_tsv}{line_name}" if q_bar_tsv else None,
                           svg=f"{q_bar_svg}{line_name}" if q_bar_svg else None,
                           y_max_value = max_quantitative_value,
-                          transparent=transparent)
+                          transparent=transparent, start_x_value=start_x_value)
 
         # Replace the quantitative list by a cumulative list
         data[i] = generate_cumulative_list(data[i], reversed_=True)
@@ -534,7 +560,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                           tsv=f"{c_bar_tsv}{line_name}" if c_bar_tsv else None,
                           svg=f"{c_bar_svg}{line_name}" if c_bar_svg else None,
                           y_max_value = max_cumulative_value,
-                          transparent=transparent)
+                          transparent=transparent, start_x_value=start_x_value)
 
     # Heatmap generation
     if cumulative_heatmap:
@@ -549,7 +575,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                          svg=f"{c_heat_svg}_{all_species[i]}" if c_heat_svg else None,
                          contain_number=show_values,
                          y_max_value = max_cumulative_value,
-                         transparent=transparent)
+                         transparent=transparent, start_x_value=start_x_value)
 
     if global_heatmap:
         make_heatmap(data, y_legend=all_species, x_legend=x_legend,
@@ -562,7 +588,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                      svg=heat_svg + "_global" if heat_svg else None,
                      contain_number=show_values,
                      y_max_value = max_cumulative_value,
-                     transparent=transparent)
+                     transparent=transparent, start_x_value=start_x_value)
 
     return 0
 
