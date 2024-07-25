@@ -175,8 +175,22 @@ Charts are exported with a transparent background.
 #### `--start_at_0`
 Charts start at  snp, this mean that the number of genes is shown in the first cell / colm.
 
+##### `--percent`
+Cumulative charts will show a percents instead of raw values
+
+#### `--legends`
+A path to a `.json` (e.g. `legends.json`) to modify labels used inside charts
+
+
 ## Example chart
-Charts generated using `python3 Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples --show_values -1`
+Classics charts was generated using 
+- Linux / Mac : `python3 Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples --show_values -1 -y  --transparent`
+- Windows : `python main.py Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples --show_values -1 -y --transparent` 
+
+Percents Charts was generated using 
+- Linux / Mac : `python3 main.py Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples_percent --show_values -1 -y --transparent --percent --start_at_0`
+- Windows : `python main.py Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples_percent --show_values -1 -y --transparent --percent --start_at_0
+` 
 
 The data used in these graphs comes from a random generator
 
@@ -188,17 +202,26 @@ A barchart that show the proportion of gene that have a certain number of snp.
 ### Cumulative chart :
 A barchart that show the proportion of gene that have at least certain number of snp
 ![Example Image](output/Examples/Examples_CumulativeBarchart_Delta.png)
+![Example Image](output/Examples_percent/Examples_percent_CumulativeBarchart_Delta.png)
 
 ### Cumulative Heatmap :
 A heatmap that show the proportion of gene that have at least certain number of snp (variation of Cumulative chart)
 ![Example Image](output/Examples/Examples_Heatmap_Delta.png)
-
+![Example Image](output/Examples_percent/Examples_percent_Heatmap_Delta.png)
 
 ### Global Heatmap :
 A heatmap that show the proportion of gene that have at least certain number of snp for all species.
-![Example Image](output/Examples/Examples_Heatmap_global.png)  
-
+![Example Image](output/Examples/Examples_Heatmap_global.png)
+![Example Image](output/Examples_percent/Examples_percent_Heatmap_global.png)  
 
 # NOTE FOR LATER
-Since the 1.1.0, the parameter `--name_column` is almost useless. The code should be reworked to 
+- Since the 1.1.0, the parameter `--name_column` is almost useless. The code should be reworked to 
 remove any usage of this option. 
+
+- We can allow floats inside this tool.
+
+- There is no unitary test for programs outputs.
+
+- There is no unitary test for some functions.
+
+- `legends.json` structure is quite messy to use

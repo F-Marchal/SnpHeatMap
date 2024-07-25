@@ -149,6 +149,61 @@ def parse_line(legend: list[str], line: str, separator: str = "\t") -> dict[str,
     return parsed_line
 
 
+def associate_power_of_10(value: float or int) -> str:
+    """ Transform a number into a 3-digit number with their power of 10.
+    @param value: float or int => A vlue that you want to convet.
+    @return:  a 3-digit number with their power of 10. e.g. : 3.00 K, 1.00, 10.0, 19.2 T
+    """
+    powers_of_10 = [
+        (10**24, 'Yotta', 'Y'),
+        (10**21, 'Zetta', 'Z'),
+        (10**18, 'Exa', 'E'),
+        (10**15, 'Peta', 'P'),
+        (10**12, 'Tera', 'T'),
+        (10**9, 'Giga', 'G'),
+        (10**6, 'Mega', 'M'),
+        (10**3, 'Kilo', 'k'),
+
+        (10**0, '', ''),
+
+        (10**-3, 'Milli', 'm'),
+        (10**-6, 'Micro', 'µ'),
+        (10**-9, 'Nano', 'n'),
+        (10**-12, 'Pico', 'p'),
+        (10**-15, 'Femto', 'f'),
+        (10**-18, 'Atto', 'a'),
+        (10**-21, 'Zepto', 'z'),
+        (10**-24, 'Yocto', 'y'),
+    ]
+    if value == 0:
+        return "0"
+
+    elif value < 0:
+        value *= -1
+
+    # Iterate through the powers of 10 to find the correct one
+    final_value = None
+    for power, name, symbol in powers_of_10:
+        if final_value is not None:
+            continue
+
+        if abs(value) >= power:
+            normalized = str(value / power)
+            normalized = normalized[0:4]
+
+            # Ensure that the number does not end by "."
+            if normalized[-1] == ".":
+                normalized = normalized[0:-1]
+
+            # Ensure 3 digit numbers
+            if len(normalized) == 3 and "." in normalized:
+                normalized += "0"
+
+            final_value = f"{normalized} {symbol}"
+
+    return final_value
+
+
 def extract_data_from_table(path: str, key: str, value: str, separator: str = "\t",
                             legend: list = None, filter_: callable = None) -> dict[str, any]:
     """!
@@ -393,7 +448,6 @@ def make_heatmap(data: list[list[int]],
     plt.gca().set_aspect('equal', adjustable='box')
     if contain_number is not None:
         # Add text labels inside heatmap cells
-        units = ['', 'k', 'M', 'G', 'T', 'P']
 
         if contain_number < 0:
             font_size = min(12, min(fig_size) * 12)
@@ -402,31 +456,10 @@ def make_heatmap(data: list[list[int]],
 
         for i in range(len(data)):
             for j in range(len(data[0])):
-                # pretreatment
-                str_data = str(data[i][j])
-                data_length = len(str_data)
-                data_pos = data_length % 3
-                data_units = data_length // 3
+                str_data = associate_power_of_10(data[i][j])
 
-                # Round data at 3 significant numbers
-                round_pos = max(data_length - 3, 0)
-                round_pos *= -1
-                str_data = str(round(data[i][j], round_pos))
-
-                # Format units
-                if data_units - 1 <= len(units):
-                    # No unit
-                    if data_units == 0:
-                        str_data += "\n"    # Uniform text with other data
-
-                    elif data_pos == 0:
-                        str_data = f"{str_data[:3]}\n{units[data_units - 1]}"
-
-                    else:
-                        str_data = f"{str_data[:data_pos]},{str_data[data_pos: 3]}\n{units[data_units]}"
-
-                else:
-                    raise ValueError("Too many snp : " + str(data[i][j]))
+                if str_data is None or str_data == "None":
+                    str_data = "0"
 
                 if uniq_color is None:
                     rgb = cmap_obj(norm_obj(data[i][j]))[:3]  # Get RGB values

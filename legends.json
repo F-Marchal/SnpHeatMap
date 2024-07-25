@@ -1,0 +1,48 @@
+{
+  "classic": {
+    "quantitative_barchart": {
+      "ylabel": "Number of fragments",
+      "xlabel": "Number of SNP",
+      "title": "Number of SNP per fragments in {}"
+    },
+    "cumulative_barchart": {
+      "ylabel": "Number of fragments",
+      "xlabel": "Number of SNP",
+      "title": "Number of fragments with at least n SNP in {}"
+    },
+    "heatmap": {
+      "ylabel": "Species names",
+      "xlabel": "Number of SNP",
+      "title": "Number of fragments with at least n SNP in {}"
+    },
+    "global_heatmap": {
+      "ylabel": "Species names",
+      "xlabel": "Number of SNP",
+      "title": "Number of fragments with at least n SNP"
+    }
+  },
+
+
+  "percent": {
+    "quantitative_barchart": {
+      "ylabel": "Number of fragments",
+      "xlabel": "Number of SNP",
+      "title": "Number of SNP per fragments in {}"
+    },
+    "cumulative_barchart": {
+      "ylabel": "Percent of fragments",
+      "xlabel": "Number of SNP",
+      "title": "Proportion of fragments with at least n SNP in {}"
+    },
+    "heatmap": {
+      "ylabel": "Species names",
+      "xlabel": "Number of SNP",
+      "title": "Proportion of fragments with at least n SNP in {}"
+    },
+    "global_heatmap": {
+      "ylabel": "Species names",
+      "xlabel": "Number of SNP",
+      "title": "Proportion of fragments with at least n SNP (%)"
+    }
+  }
+}

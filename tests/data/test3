@@ -1,11 +1,69 @@
-Contig_name	Status	BiAllelic_SNP	TriAllelic_SNP
-Ae_searsii_Tr165_SER04_Singlet100004	OK	3	0
-Ae_searsii_Tr165_SER04_Singlet100007	OK	4	0
-Ae_searsii_Tr165_SER04_Singlet100011	OK	2	0
-Ae_searsii_Tr165_SER04_Singlet100015	OK	2	0
-Ae_searsii_Tr165_SER04_Singlet100030	OK	1	0
-Ae_searsii_Tr165_SER04_Singlet100075	OK	2	0
-Ae_searsii_Tr165_SER04_Singlet100108	OK	2	0
-Ae_searsii_Tr165_SER04_Singlet100168	OK	4	0
-Ae_searsii_Tr165_SER04_Singlet100175	OK	1	0
-Ae_searsii_Tr165_SER04_Singlet10018	OK	7	0
+Contig_name	BiAllelic_SNP	scraps
+contig_1	2	xyz
+contig_2	3	abc
+contig_3	4	def
+contig_4	5	ghi
+contig_5	6	jkl
+contig_6	2	mno
+contig_7	3	pqr
+contig_8	4	stu
+contig_9	5	vwx
+contig_10	6	yz
+contig_11	2	abc
+contig_12	3	def
+contig_13	4	ghi
+contig_14	5	jkl
+contig_15	6	mno
+contig_16	2	pqr
+contig_17	3	stu
+contig_18	4	vwx
+contig_19	5	yz
+contig_20	6	abc
+contig_21	2	def
+contig_22	3	ghi
+contig_23	4	jkl
+contig_24	5	mno
+contig_25	6	pqr
+contig_26	2	stu
+contig_27	3	vwx
+contig_28	4	yz
+contig_29	5	abc
+contig_30	6	def
+contig_31	2	ghi
+contig_32	3	jkl
+contig_33	4	mno
+contig_34	5	pqr
+contig_35	6	stu
+contig_36	0	vwx
+contig_37	0	yz
+contig_38	4	abc
+contig_39	5	def
+contig_40	6	ghi
+contig_41	2	jkl
+contig_42	3	mno
+contig_43	4	pqr
+contig_44	5	stu
+contig_45	6	vwx
+contig_46	0	yz
+contig_47	0	abc
+contig_48	4	def
+contig_49	5	ghi
+contig_50	6	jkl
+contig_51	2	mno
+contig_52	3	pqr
+contig_53	4	stu
+contig_54	5	vwx
+contig_55	6	yz
+contig_56	0	abc
+contig_57	3	def
+contig_58	4	ghi
+contig_59	5	jkl
+contig_60	6	mno
+contig_61	2	pqr
+contig_62	3	stu
+contig_63	4	vwx
+contig_64	5	yz
+contig_65	6	abc
+contig_66	2	def
+contig_67	3	ghi
+contig_68	4	dsr

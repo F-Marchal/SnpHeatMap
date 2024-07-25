@@ -1,11 +1,101 @@
-Contig_name	Status	BiAllelic_SNP	TriAllelic_SNP
-Ae_searsii_Tr165_SER04_Singlet100004	OK	0	0
-Ae_searsii_Tr165_SER04_Singlet100007	OK	2	0
-Ae_searsii_Tr165_SER04_Singlet100011	OK	1	0
-Ae_searsii_Tr165_SER04_Singlet100015	OK	2	0
-Ae_searsii_Tr165_SER04_Singlet100030	OK	4	0
-Ae_searsii_Tr165_SER04_Singlet100075	OK	1	0
-Ae_searsii_Tr165_SER04_Singlet100108	OK	2	0
-Ae_searsii_Tr165_SER04_Singlet100168	OK	1	0
-Ae_searsii_Tr165_SER04_Singlet100175	OK	1	0
-Ae_searsii_Tr165_SER04_Singlet10018	OK	9	0
+Contig_name	BiAllelic_SNP	scraps
+contig_1	1	xyz
+contig_2	3	abc
+contig_3	2	def
+contig_4	5	ghi
+contig_5	1	jkl
+contig_6	4	mno
+contig_7	7	pqr
+contig_8	2	stu
+contig_9	6	vwx
+contig_10	3	yz
+contig_11	9	xyz
+contig_12	2	abc
+contig_13	8	def
+contig_14	1	ghi
+contig_15	4	jkl
+contig_16	5	mno
+contig_17	7	pqr
+contig_18	3	stu
+contig_19	6	vwx
+contig_20	1	yz
+contig_21	10	xyz
+contig_22	2	abc
+contig_23	8	def
+contig_24	4	ghi
+contig_25	5	jkl
+contig_26	3	mno
+contig_27	7	pqr
+contig_28	1	stu
+contig_29	6	vwx
+contig_30	2	yz
+contig_31	9	xyz
+contig_32	4	abc
+contig_33	8	def
+contig_34	1	ghi
+contig_35	5	jkl
+contig_36	7	mno
+contig_37	3	pqr
+contig_38	6	stu
+contig_39	2	vwx
+contig_40	10	yz
+contig_41	1	xyz
+contig_42	4	abc
+contig_43	8	def
+contig_44	2	ghi
+contig_45	5	jkl
+contig_46	7	mno
+contig_47	3	pqr
+contig_48	6	stu
+contig_49	2	vwx
+contig_50	9	yz
+contig_51	1	xyz
+contig_52	4	abc
+contig_53	5	def
+contig_54	8	ghi
+contig_55	3	jkl
+contig_56	7	mno
+contig_57	2	pqr
+contig_58	6	stu
+contig_59	10	vwx
+contig_60	1	yz
+contig_61	4	xyz
+contig_62	8	abc
+contig_63	2	def
+contig_64	5	ghi
+contig_65	7	jkl
+contig_66	3	mno
+contig_67	6	pqr
+contig_68	2	stu
+contig_69	9	vwx
+contig_70	1	yz
+contig_71	4	xyz
+contig_72	8	abc
+contig_73	5	def
+contig_74	2	ghi
+contig_75	6	jkl
+contig_76	7	mno
+contig_77	3	pqr
+contig_78	10	stu
+contig_79	2	vwx
+contig_80	1	yz
+contig_81	4	xyz
+contig_82	8	abc
+contig_83	0	def
+contig_84	3	ghi
+contig_85	7	jkl
+contig_86	2	mno
+contig_87	6	pqr
+contig_88	9	stu
+contig_89	1	vwx
+contig_90	4	yz
+contig_91	8	xyz
+contig_92	5	abc
+contig_93	2	def
+contig_94	7	ghi
+contig_95	3	jkl
+contig_96	6	mno
+contig_97	10	pqr
+contig_98	0	stu
+contig_99	4	vwx
+contig_100	8	yz

@@ -57,43 +57,92 @@ except ModuleNotFoundError as E:
 __author__ = "Marchal Florent"
 __credits__ = ["Florent Marchal", "Vetea Jacot", "Concetta Burgarella", "Vincent Ranwez", "Nathalie Chantret"]
 
-
 # List of arguments used to start this program with Their shorten name, (default value and type)
 __getopts__ = {
     # long name:                (shorten_name, (default_value, type))
     #                                           None = (None, str)
 
     # Arguments:
-    "name_column=":             ("n:", None),
-    "snp_column=":              ("s:", None),
-    "path=":                    ("p:", ("data", str)),
+    "name_column=": ("n:", None),
+    "snp_column=": ("s:", None),
+    "path=": ("p:", ("data", str)),
     "help": ("h", None),
 
     # Parameters :
-    "file_separator=":          ("f:", ("\t", str)),
-    "output_path=":             ("o:", ("output/", str)),
-    "job_name=":                ("j:", ("Unnamed", str)),
-    "max_length=":              ("m:", (20, int)),
-    "show_values=":             ("e:", (None, int)),
+    "file_separator=": ("f:", ("\t", str)),
+    "output_path=": ("o:", ("output/", str)),
+    "job_name=": ("j:", ("Unnamed", str)),
+    "max_length=": ("m:", (20, int)),
+    "show_values=": ("e:", (None, int)),
 
     # long name:                (shorten_name, (inactive value, active value))
     #                                           None = (True, False)
 
-    "output_warning":           ("w", (True, False)),
-    "sort_by_name":             ("r", (True, False)),
-    "simplified":               ("i", None),
-    "global_heatmap":           ("g", None),
-    "quantitative_barchart":    ("q", None),
-    "cumulative_barchart":      ("c", None),
-    "cumulative_heatmap":       ("u", None),
-    "tsv":                      ("t", None),
-    "png":                      ("k", None),
-    "show":                     ("d", None),
-    "svg":                      ("v", None),
-    ("uniform_y", "uniform"):   ("y", None),
-    "transparent":              (None, (False, True)),
-    "start_at_0":               (None, (False, True)),
+    "output_warning": ("w", (True, False)),
+    "sort_by_name": ("r", (True, False)),
+    "simplified": ("i", None),
+    "global_heatmap": ("g", None),
+    "quantitative_barchart": ("q", None),
+    "cumulative_barchart": ("c", None),
+    "cumulative_heatmap": ("u", None),
+    "tsv": ("t", None),
+    "png": ("k", None),
+    "show": ("d", None),
+    "svg": ("v", None),
+    ("uniform_y", "uniform"): ("y", None),
+    "transparent": (None, (False, True)),
+    "start_at_0": (None, (False, True)),
+    "percent": (None, (False, True)),
+    "legends=": (None, (None, str))
+}
 
+default_legends = {
+  "classic": {
+    "quantitative_barchart": {
+      "ylabel": "Number of fragments",
+      "xlabel": "Number of SNP",
+      "title": "Number of SNP per fragments in {}"
+    },
+    "cumulative_barchart": {
+      "ylabel": "Number of fragments",
+      "xlabel": "Number of SNP",
+      "title": "Number of fragments with at least n SNP in {}"
+    },
+    "heatmap": {
+      "ylabel": "Species names",
+      "xlabel": "Number of SNP",
+      "title": "Number of fragments with at least n SNP in {}"
+    },
+    "global_heatmap": {
+      "ylabel": "Species names",
+      "xlabel": "Number of SNP",
+      "title": "Number of fragments with at least n SNP"
+    }
+  },
+
+
+  "percent": {
+    "quantitative_barchart": {
+      "ylabel": "Number of fragments",
+      "xlabel": "Number of SNP",
+      "title": "Number of SNP per fragments in {}"
+    },
+    "cumulative_barchart": {
+      "ylabel": "Percent of fragments",
+      "xlabel": "Number of SNP",
+      "title": "Proportion of fragments with at least n SNP in {}"
+    },
+    "heatmap": {
+      "ylabel": "Species names",
+      "xlabel": "Number of SNP",
+      "title": "Proportion of fragments with at least n SNP in {}"
+    },
+    "global_heatmap": {
+      "ylabel": "Species names",
+      "xlabel": "Number of SNP",
+      "title": "Proportion of fragments with at least n SNP (%)"
+    }
+  }
 }
 
 
@@ -202,7 +251,7 @@ def compile_gene_snp(genes_snp: iter, dict_of_number: dict[int, dict[str, int]] 
     return dict_of_number
 
 
-def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *groups: str,
+def make_data_matrix(compiled_dict: dict[int, dict[str, int]], group: str, *groups: str,
                      simplified: bool = True, max_length: int = None,
                      start_value: int = 1) -> (list[list[int]], list[int]):
     """!
@@ -249,10 +298,10 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
         max_length = None
 
     # Variables
-    groups = [group, *groups]                       # Merge @p group and @p groups
+    groups = [group, *groups]  # Merge @p group and @p groups
     data = [list() for _ in range(0, len(groups))]  # Data matrix
-    last_x_value = start_value - 1                  # Remember the last value
-    sorted_x_values = sorted(compiled_dict)         # Snp size from compiled_dict sorted y size
+    last_x_value = start_value - 1  # Remember the last value
+    sorted_x_values = sorted(compiled_dict)  # Snp size from compiled_dict sorted y size
 
     # Apply the @p max_length by reducing the size of "sorted_x_values"
     if max_length is not None and len(sorted_x_values) >= max_length:
@@ -288,7 +337,8 @@ def make_data_matrix(compiled_dict : dict[int, dict[str, int]], group: str, *gro
         return data, list(range(start_value, sorted_x_values[-1] + 1))
 
 
-def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed_=False) -> list[int]:
+def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed_=False, percent=False) -> list[
+    int or float]:
     """!
     @brief Take a list of number and sum all values.
     @code
@@ -297,6 +347,7 @@ def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed
 
     @param list_of_numbers : list[int] or list[float] => A list that contain numbers.
     @param reversed_ = False => Do the accumulation start at the end and end at the beginning.
+    @param percent = False => Do results are percent or raw values.
 
     @return list[int] => A list of number
 
@@ -309,12 +360,17 @@ def generate_cumulative_list(list_of_numbers: list[int] or list[float], reversed
     if reversed_:
         index_range = list(range(-1, -(len(list_of_numbers) + 1), -1))
     else:
-        index_range = range(0, len(list_of_numbers))
+        index_range = list(range(0, len(list_of_numbers)))
 
     # Fill cumulative_list
     for i in index_range:
         tot += list_of_numbers[i]
         cumulative_list.append(tot)
+
+    # Apply the percent
+    if percent:
+        for i in index_range:
+            cumulative_list[i] = cumulative_list[i] / tot * 100
 
     # Reverse cumulative_list when needed
     if reversed_:
@@ -329,9 +385,10 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
          global_heatmap: bool = True, quantitative_barchart: bool = False, cumulative_barchart: bool = False,
          cumulative_heatmap: bool = False,
          tsv: bool = False, png: bool = False, show: bool = False, svg: bool = True,
-         sort_by_name: bool = True, uniform_y: bool = True, transparent : bool = True,
-         show_values: int = -1,
-         start_at_0: bool = True) -> int:
+         sort_by_name: bool = True, uniform_y: bool = True, transparent: bool = True,
+         show_values: int = -1, legends: str = None,
+         start_at_0: bool = True,
+         percent: bool = False) -> int:
     """!
     @brief Create a number of chart related to snp analysis.
 
@@ -375,6 +432,7 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     png and svg). If None, nothing happen.
     @param transparent : bool = True => Chart are exported with a transparent background
     @param start_at_0 : bool = True => Charts shows the number of genes in the first column / cell
+    @param percent : bool = True => Show percent instead of raw values.
 
     @return int => if greater than 0, an error occurred.
     - 1 job stopped by user
@@ -396,6 +454,16 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     # Assure that at least one thing will be generated
     if not (tsv or svg or png or show):
         png = True
+
+    if legends is None:
+        legends = default_legends
+
+    else:
+        if not os.path.isfile(legends):
+            raise IOError(f"File expected, got : {legends} (current is '{os.getcwd()}')")
+
+        with open(legends, "r") as legend_json:
+            legends = json.load(legend_json)
 
     # ---- ---- Path Management ---- ---- #
     # Assure that @p output_path point to a folder
@@ -467,8 +535,8 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
     q_bar_show = show and quantitative_barchart
 
     # ---- ---- Load files ---- ----
-    all_snp = {}                        # {Number_of_snp, {File_name : Number_of_genes_with_this_number_of_snp}
-    all_species = []                    # List all targeted files
+    all_snp = {}  # {Number_of_snp, {File_name : Number_of_genes_with_this_number_of_snp}
+    all_species = []  # List all targeted files
 
     # process all files and load snp into all_species
     for files in list_of_files:
@@ -478,12 +546,12 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         try:
             files_dict = extract_data_from_table(f"{file_path_prefix}{files}", key=name_column, value=snp_column,
                                                  filter_=lambda _, val, dict_:
-                                                           filter_integer_greater_or_equal_to_0(val, dict_, start_at_0),
+                                                 filter_integer_greater_or_equal_to_0(val, dict_, start_at_0),
                                                  # "_" in lambda is mendatory due to how extract_data_from_table works.
                                                  separator=file_separator)
         except FilterError as E:
             print(f"An error occurred : {E}\n"
-                  
+
                   f"This program only accept positive integer in the following format : '1000', '1_000', '+1000'.\n"
                   f"Look for miss formated data in {snp_column}")
 
@@ -509,17 +577,34 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                                       start_value=start_x_value)
 
     # Uniformize all y axis
+
     if uniform_y:
         max_quantitative_value = 0
         max_cumulative_value = 0
+
         for lines in data:
             max_quantitative_value = max(max(lines), max_quantitative_value)
-            max_cumulative_value = max(sum(lines), max_quantitative_value)
+
+            if percent:
+                # max_cumulative_value = max(max(lines) / max(lines) * 100, max_cumulative_value)
+                max_cumulative_value = 100
+
+            else:
+                max_cumulative_value = max(sum(lines), max_cumulative_value)
+
         max_quantitative_value += 1
         max_cumulative_value += 1
+
     else:
         max_quantitative_value = None
         max_cumulative_value = None
+
+    # Legend
+    lm = legend_mod = "percent" if percent else "classic"
+    q = "quantitative_barchart"
+    c = "cumulative_barchart"
+    u = "heatmap"
+    g = "global_heatmap"
 
     if len(x_legend) == x_legend[-1]:
         # if the legend is equivalent of the automatic one, we use the automatic legend
@@ -536,58 +621,59 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
         # Make quantitative barchart
         if quantitative_barchart:
             make_bar_char(data[i], x_legend=x_legend, chart_name=line_name,
-                          ylabel="Number of genes",
-                          xlabel="Number of snp",
-                          title=f"Number of snp per genes in {line_name}",
+                          ylabel=legends[lm][q]["ylabel"],
+                          xlabel=legends[lm][q]["xlabel"],
+                          title=legends[lm][q]["title"].format(line_name),
                           show=q_bar_show,
                           png=f"{q_bar_png}{line_name}" if q_bar_png else None,
                           tsv=f"{q_bar_tsv}{line_name}" if q_bar_tsv else None,
                           svg=f"{q_bar_svg}{line_name}" if q_bar_svg else None,
-                          y_max_value = max_quantitative_value,
+                          y_max_value=max_quantitative_value,
                           transparent=transparent, start_x_value=start_x_value)
 
         # Replace the quantitative list by a cumulative list
-        data[i] = generate_cumulative_list(data[i], reversed_=True)
+        data[i] = generate_cumulative_list(data[i], reversed_=True, percent=percent)
 
         # Make cumulative Barchart
         if cumulative_barchart:
             make_bar_char(data[i],
                           show=c_bar_show, x_legend=x_legend, chart_name=line_name,
-                          ylabel="Number of genes",
-                          xlabel="Number of snp",
-                          title=f"Number of genes with at least n snp in {line_name}",
+                          ylabel=legends[lm][c]["ylabel"],
+                          xlabel=legends[lm][c]["xlabel"],
+                          title=legends[lm][c]["title"].format(line_name),
                           png=f"{c_bar_png}{line_name}" if c_bar_png else None,
                           tsv=f"{c_bar_tsv}{line_name}" if c_bar_tsv else None,
                           svg=f"{c_bar_svg}{line_name}" if c_bar_svg else None,
-                          y_max_value = max_cumulative_value,
+                          y_max_value=max_cumulative_value,
                           transparent=transparent, start_x_value=start_x_value)
 
     # Heatmap generation
     if cumulative_heatmap:
         for i, lines in enumerate(data):
+            line_name = all_species[i]
             make_heatmap([lines], y_legend=[all_species[i]], x_legend=x_legend,
-                         title=f"Number of genes with at least n SNP : {all_species[i]}",
-                         xlabel="Number of snp",
-                         ylabel="Species names",
+                         ylabel=legends[lm][u]["ylabel"],
+                         xlabel=legends[lm][u]["xlabel"],
+                         title=legends[lm][u]["title"].format(line_name),
                          show=c_heat_show,
                          png=f"{c_heat_png}_{all_species[i]}" if c_heat_png else None,
                          tsv=f"{c_heat_tsv}_{all_species[i]}" if c_heat_tsv else None,
                          svg=f"{c_heat_svg}_{all_species[i]}" if c_heat_svg else None,
                          contain_number=show_values,
-                         y_max_value = max_cumulative_value,
+                         y_max_value=max_cumulative_value,
                          transparent=transparent, start_x_value=start_x_value)
 
     if global_heatmap:
         make_heatmap(data, y_legend=all_species, x_legend=x_legend,
-                     title="Number of genes with at least n SNP",
-                     xlabel="Number of snp",
-                     ylabel="Species names",
+                     ylabel=legends[lm][g]["ylabel"],
+                     xlabel=legends[lm][g]["xlabel"],
+                     title=legends[lm][g]["title"],
                      show=heat_show,
                      png=heat_png + "_global" if heat_png else None,
                      tsv=heat_tsv + "_global" if heat_tsv else None,
                      svg=heat_svg + "_global" if heat_svg else None,
                      contain_number=show_values,
-                     y_max_value = max_cumulative_value,
+                     y_max_value=max_cumulative_value,
                      transparent=transparent, start_x_value=start_x_value)
 
     return 0
@@ -640,7 +726,5 @@ def main_using_getopts(argv: list[str] or str):
 
 if __name__ == "__main__":
     import sys
+
     exit(main_using_getopts(sys.argv[1:]))
-
-
-
