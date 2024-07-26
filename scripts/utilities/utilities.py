@@ -247,6 +247,7 @@ def extract_data_from_table(path: str, key: str, value: str, separator: str = "\
         # Special cases : Unknown legend
         if legend is None:
             legend = line.split(separator)
+            legend = [item.strip() for item in legend if item.strip()]
 
             # Researched keys and values should be contained inside the legend.
             if key not in legend or value not in legend:
@@ -428,7 +429,7 @@ def make_heatmap(data: list[list[int]],
     if x_legend:
         plt.xticks(range(start_x_value, num_cols+start_x_value), x_legend)
     else:
-        x_legend = [str(i) for i in range(1, num_cols + 1)]
+        x_legend = [str(i) for i in range(start_x_value, num_cols + start_x_value)]
         plt.xticks(range(num_cols), x_legend)
 
     if y_legend:

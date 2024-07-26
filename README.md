@@ -182,7 +182,7 @@ Cumulative charts will show a percents instead of raw values
 A path to a `.json` (e.g. `legends.json`) to modify labels used inside charts
 
 
-## Example chart
+## Example chart (Last generation V1.1.2)
 Classics charts was generated using 
 - Linux / Mac : `python3 Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples --show_values -1 -y  --transparent`
 - Windows : `python main.py Contig_name BiAllelic_SNP tests/TargetedFiles.json -m 10 -kgqcuw -j Examples --show_values -1 -y --transparent` 
@@ -225,3 +225,9 @@ remove any usage of this option.
 - There is no unitary test for some functions.
 
 - `legends.json` structure is quite messy to use
+
+- Reformat code, there was a number of modification since the V1.0.0
+
+- The Doc might not be completely up-to-date. (Normally the README is up-to-date)
+
+- Add Example chart generation to the workflow
