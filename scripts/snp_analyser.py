@@ -670,7 +670,6 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                           svg=f"{q_bar_svg}{line_name}" if q_bar_svg else None,
                           y_max_value=max_quantitative_value,
                           transparent=transparent, start_x_value=start_x_value)
-            output_readme.write(f"Generated : {legends[lm][q]["title"]}.\n\n".format(line_name))
 
         # Replace the quantitative list by a cumulative list
         data[i] = generate_cumulative_list(data[i], reversed_=True, percent=percent)[:-1]
@@ -688,7 +687,6 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                           svg=f"{c_bar_svg}{line_name}" if c_bar_svg else None,
                           y_max_value=max_cumulative_value,
                           transparent=transparent, start_x_value=start_x_value)
-            output_readme.write(f"Generated : {legends[lm][c]["title"]}.\n\n".format(line_name))
 
     # Heatmap generation
     if cumulative_heatmap:
@@ -706,7 +704,6 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                          contain_number=show_values,
                          y_max_value=max_cumulative_value,
                          transparent=transparent, start_x_value=start_x_value)
-            output_readme.write(f"Generated : {legends[lm][u]["title"]}.\n\n".format(line_name))
 
     if global_heatmap:
         make_heatmap(data, y_legend=all_species, x_legend=x_legend,
@@ -720,7 +717,6 @@ def main(path: str, name_column: str, snp_column: str, file_separator: str = "\t
                      contain_number=show_values,
                      y_max_value=max_cumulative_value,
                      transparent=transparent, start_x_value=start_x_value)
-        output_readme.write(f"Generated : {legends[lm][g]["title"]}.\n\n")
 
     output_readme.write("\n\nDone.")
     output_readme.close()
